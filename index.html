@@ -1,1 +1,705 @@
-<html><body><h1>Hello Bean Board coming soon</h1></body></html>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Coffee Rabbit Hole — Live Offerings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alice&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh; background: #0A0A0A; color: #E8DCC8;
+    font-family: 'JetBrains Mono', monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+  .noise {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .scanlines {
+    position: fixed; inset: 0; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px);
+  }
+  #app { position: relative; z-index: 3; max-width: 1240px; margin: 0 auto; padding: 24px 20px; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #1A1A1A;
+  }
+  .title-row { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  .title-row .logo { font-size: 26px; filter: drop-shadow(0 0 8px rgba(245,166,35,0.3)); }
+  .title-row h1 {
+    font-family: 'Alice', serif;
+    font-size: 30px; font-weight: 400; letter-spacing: 0.04em;
+    color: #E8DCC8;
+    text-shadow: 0 0 20px rgba(245,166,35,0.15), 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .title-row h1 .wonderland-accent { color: #F5A623; font-style: italic; }
+  .subtitle { font-size: 11px; color: #555; letter-spacing: 0.15em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+  .clock { font-size: 24px; font-weight: 300; letter-spacing: 0.15em; color: #F5A623; margin-bottom: 2px; text-align: right; }
+  .date { font-size: 10px; color: #555; letter-spacing: 0.15em; text-align: right; }
+  .roaster-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1A1A1A; }
+  .roaster-links-label { font-size: 10px; color: #444; letter-spacing: 0.15em; margin-right: 4px; }
+  .roaster-links a { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-decoration: none; text-transform: uppercase; transition: all 0.2s ease; border: 1px solid transparent; }
+  .roaster-links a .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .roaster-links a .arrow { opacity: 0.5; font-size: 9px; }
+  .roaster-links a:hover { border-color: currentColor; }
+  .filter-group { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .filter-label { font-size: 10px; color: #444; letter-spacing: 0.15em; min-width: 62px; text-transform: uppercase; }
+  .filter-btn { padding: 5px 12px; border-radius: 4px; border: 1px solid #2A2A2A; background: transparent; color: #555; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; cursor: pointer; font-family: inherit; text-transform: uppercase; transition: all 0.2s ease; }
+  .filter-btn:hover { border-color: #444; color: #888; }
+  .filter-btn.active { border-color: #E8DCC8; color: #E8DCC8; background: rgba(232,220,200,0.06); }
+  .filter-btn.active[data-color] { border-color: var(--btn-color); color: var(--btn-color); background: rgba(255,255,255,0.04); }
+  .board-header { display: grid; grid-template-columns: 130px 1fr 100px 140px 70px 70px 70px; gap: 12px; padding: 8px 16px; border-bottom: 2px solid #222; margin-bottom: 2px; }
+  .board-header span { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; color: #444; text-transform: uppercase; }
+  #board { background: rgba(255,255,255,0.01); border-radius: 4px; border: 1px solid #151515; min-height: 200px; }
+  .board-row { display: grid; grid-template-columns: 130px 1fr 100px 140px 70px 70px 70px; gap: 12px; align-items: center; padding: 9px 16px; border-bottom: 1px solid #1A1A1A; text-decoration: none; color: inherit; transition: background 0.15s ease; cursor: pointer; }
+  .board-row:hover { background: rgba(255,255,255,0.025); }
+  .board-row:nth-child(even) { background: rgba(255,255,255,0.008); }
+  .board-row:nth-child(even):hover { background: rgba(255,255,255,0.03); }
+  .board-row.row-hidden { opacity: 0; transform: translateY(4px); }
+  .board-row.row-visible { opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.3s ease; }
+  .roaster-cell { display: flex; align-items: center; gap: 8px; }
+  .roaster-bar { width: 3px; height: 20px; border-radius: 2px; flex-shrink: 0; }
+  .flap-text { display: inline-flex; flex-wrap: nowrap; overflow: hidden; }
+  .flap-char { display: inline-block; background: #0D0D0D; color: #0D0D0D; padding: 1px 1.5px; margin: 0 0.3px; border-radius: 2px; font-family: inherit; font-size: inherit; line-height: 1.4; transition: background 0.05s ease, color 0.05s ease; }
+  .flap-char.revealed { background: #1A1A1A; color: #E8DCC8; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.05), inset 0 1px 0 rgba(0,0,0,0.4); }
+  .flap-char.space { min-width: 0.35em; background: transparent !important; box-shadow: none !important; }
+  .process-badge { display: inline-block; padding: 3px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+  .process-natural { background: #5C2D0E; color: #FFB347; }
+  .process-washed { background: #0E3B5C; color: #47B3FF; }
+  .process-anaerobic { background: #3B0E5C; color: #C847FF; }
+  .process-honey { background: #5C4A0E; color: #FFD747; }
+  .process-other { background: #2A2A2A; color: #666; }
+  .roast-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .roast-esp { color: #F5A623; }
+  .roast-flt { color: #47B3FF; }
+  .roast-both { color: #E8DCC8; }
+  .status-badge { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+  .status-in-stock { background: #0A3A1A; color: #34D399; border: 1px solid #166534; }
+  .status-sold-out { background: #3A0A0A; color: #EF4444; border: 1px solid #7F1D1D; }
+  .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 16px; }
+  .loading-text { font-size: 12px; letter-spacing: 0.2em; color: #555; text-transform: uppercase; }
+  .loading-dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #F5A623; margin: 0 4px; animation: pulse 1.4s ease-in-out infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%, 80%, 100% { opacity: 0.15; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+  .error-notice { padding: 8px 16px; margin-bottom: 12px; border: 1px solid #7F1D1D; border-radius: 4px; background: rgba(127,29,29,0.1); font-size: 10px; color: #EF4444; letter-spacing: 0.05em; }
+  footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #1A1A1A; flex-wrap: wrap; gap: 8px; }
+  footer span { font-size: 10px; color: #333; letter-spacing: 0.12em; }
+  @media (max-width: 900px) {
+    .board-header, .board-row { grid-template-columns: 100px 1fr 80px 110px 50px 55px 60px; gap: 6px; padding: 8px 10px; }
+    .title-row h1 { font-size: 22px; } .clock { font-size: 18px; }
+  }
+  @media (max-width: 700px) {
+    #app { padding: 16px 10px; }
+    .board-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .board-header, .board-row { min-width: 720px; }
+    header { flex-direction: column; gap: 12px; }
+    .header-right { display: flex; gap: 12px; align-items: baseline; }
+    .clock, .date { text-align: left; }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="scanlines"></div>
+<div id="app">
+  <header>
+    <div class="header-left">
+      <div class="title-row">
+        <span class="logo">🐇</span>
+        <h1>My Coffee <span class="wonderland-accent">Rabbit Hole</span></h1>
+      </div>
+      <p class="subtitle">Live offerings from my favourite roasters</p>
+    </div>
+    <div class="header-right">
+      <div class="clock" id="clock"></div>
+      <div class="date" id="date"></div>
+    </div>
+  </header>
+  <nav class="roaster-links">
+    <span class="roaster-links-label">ROASTERS</span>
+    <a href="https://alchemist.global" target="_blank" rel="noopener" style="color:#4ECDC4"><span class="dot" style="background:#4ECDC4"></span>ALCHEMIST<span class="arrow">↗</span></a>
+    <a href="https://themaillardproject.com.au" target="_blank" rel="noopener" style="color:#E8475F"><span class="dot" style="background:#E8475F"></span>MAILLARD PROJECT<span class="arrow">↗</span></a>
+    <a href="https://www.proudmarycoffee.com.au" target="_blank" rel="noopener" style="color:#F5A623"><span class="dot" style="background:#F5A623"></span>PROUD MARY<span class="arrow">↗</span></a>
+    <a href="https://margaretriverroasting.com.au" target="_blank" rel="noopener" style="color:#9B8EC4"><span class="dot" style="background:#9B8EC4"></span>MR ROASTING CO<span class="arrow">↗</span></a>
+  </nav>
+  <div id="filters">
+    <div class="filter-group">
+      <span class="filter-label">ROASTER</span>
+      <button class="filter-btn active" data-filter="roaster" data-value="ALL">ALL</button>
+      <button class="filter-btn" data-filter="roaster" data-value="Alchemist" style="--btn-color:#4ECDC4" data-color>ALCHEMIST</button>
+      <button class="filter-btn" data-filter="roaster" data-value="Maillard Project" style="--btn-color:#E8475F" data-color>MAILLARD PROJECT</button>
+      <button class="filter-btn" data-filter="roaster" data-value="Proud Mary" style="--btn-color:#F5A623" data-color>PROUD MARY</button>
+      <button class="filter-btn" data-filter="roaster" data-value="MR Roasting Co" style="--btn-color:#9B8EC4" data-color>MR ROASTING CO</button>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">PROCESS</span>
+      <button class="filter-btn active" data-filter="process" data-value="ALL">ALL</button>
+      <button class="filter-btn" data-filter="process" data-value="Washed" style="--btn-color:#47B3FF" data-color>WASHED</button>
+      <button class="filter-btn" data-filter="process" data-value="Natural" style="--btn-color:#FFB347" data-color>NATURAL</button>
+      <button class="filter-btn" data-filter="process" data-value="Anaerobic" style="--btn-color:#C847FF" data-color>ANAEROBIC</button>
+      <button class="filter-btn" data-filter="process" data-value="Honey" style="--btn-color:#FFD747" data-color>HONEY</button>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">ROAST</span>
+      <button class="filter-btn active" data-filter="roast" data-value="ALL">ALL</button>
+      <button class="filter-btn" data-filter="roast" data-value="Espresso" style="--btn-color:#F5A623" data-color>ESPRESSO</button>
+      <button class="filter-btn" data-filter="roast" data-value="Filter" style="--btn-color:#47B3FF" data-color>FILTER</button>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">STATUS</span>
+      <button class="filter-btn" data-filter="status" data-value="ALL">ALL</button>
+      <button class="filter-btn active" data-filter="status" data-value="AVAIL" style="--btn-color:#34D399" data-color>AVAILABLE</button>
+      <button class="filter-btn" data-filter="status" data-value="SOLD" style="--btn-color:#EF4444" data-color>SOLD OUT</button>
+    </div>
+  </div>
+  <div id="errors"></div>
+  <div class="board-scroll">
+    <div class="board-header">
+      <span>ROASTER</span><span>COFFEE</span><span>ORIGIN</span>
+      <span>PROCESS</span><span>ROAST</span><span>PRICE</span><span>STATUS</span>
+    </div>
+    <div id="board">
+      <div class="loading-state" id="loading">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <div class="loading-text">FETCHING LIVE OFFERINGS...</div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <span id="count"></span>
+    <span id="refresh-time"></span>
+    <span style="font-family:'Alice',serif; font-size:11px; color:#444;">curiouser and curiouser…</span>
+  </footer>
+</div>
+<script>
+// ============================================================
+// STORE CONFIGS — ordered: Alchemist, Maillard, Proud Mary, MRRC
+// Uses COLLECTION endpoints instead of global /products.json
+// to get exactly the coffees each roaster shows on their site.
+// ============================================================
+const STORES = [
+  {
+    name: "Alchemist", color: "#4ECDC4", currency: "S$",
+    baseUrl: "https://alchemist.global",
+    // Fetch both espresso and filter bean collections
+    apiUrls: [
+      "https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250",
+      "https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250"
+    ],
+    parse: parseAlchemist
+  },
+  {
+    name: "Maillard Project", color: "#E8475F", currency: "A$",
+    baseUrl: "https://themaillardproject.com.au",
+    apiUrls: [
+      "https://themaillardproject.com.au/products.json?limit=250&page=1"
+    ],
+    parse: parseMaillard
+  },
+  {
+    name: "Proud Mary", color: "#F5A623", currency: "A$",
+    baseUrl: "https://www.proudmarycoffee.com.au",
+    // Use the /collections/coffee endpoint — exactly what their coffee page shows
+    apiUrls: [
+      "https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250",
+      "https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2"
+    ],
+    parse: parseProudMary
+  },
+  {
+    name: "MR Roasting Co", color: "#9B8EC4", currency: "A$",
+    baseUrl: "https://margaretriverroasting.com.au",
+    apiUrls: [
+      "https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250"
+    ],
+    parse: parseMRRC
+  },
+];
+
+let allBeans = [];
+let filters = { roaster: “ALL”, process: “ALL”, roast: “ALL”, status: “AVAIL” };
+
+// ============================================================
+// DETECTION HELPERS
+// ============================================================
+const COUNTRIES = [
+“Ethiopia”,“Colombia”,“Kenya”,“Guatemala”,“Mexico”,“Nicaragua”,“Honduras”,
+“Costa Rica”,“Panama”,“El Salvador”,“Brazil”,“Peru”,“Thailand”,“Uganda”,
+“Rwanda”,“Burundi”,“Indonesia”,“India”,“Bolivia”,“Ecuador”,“Tanzania”,
+“Papua New Guinea”,“Myanmar”,“Yemen”,“China”,“Japan”,“Australia”,“Laos”,
+“Vietnam”,“Congo”,“Zambia”,“Malawi”,“Zimbabwe”,“Hawaii”,
+];
+const DEMONYMS = {
+“ethiopian”:“Ethiopia”,“colombian”:“Colombia”,“kenyan”:“Kenya”,
+“guatemalan”:“Guatemala”,“mexican”:“Mexico”,“nicaraguan”:“Nicaragua”,
+“honduran”:“Honduras”,“costa rican”:“Costa Rica”,“panamanian”:“Panama”,
+“salvadoran”:“El Salvador”,“salvadorean”:“El Salvador”,“salvadorian”:“El Salvador”,
+“brazilian”:“Brazil”,“peruvian”:“Peru”,“thai”:“Thailand”,
+“ugandan”:“Uganda”,“rwandan”:“Rwanda”,“burundian”:“Burundi”,
+“indonesian”:“Indonesia”,“indian”:“India”,“bolivian”:“Bolivia”,
+“ecuadorian”:“Ecuador”,“tanzanian”:“Tanzania”,“yemeni”:“Yemen”,
+“vietnamese”:“Vietnam”,“congolese”:“Congo”,
+};
+
+function detectOrigin(text) {
+if (!text) return null;
+const t = text.toLowerCase();
+for (const c of COUNTRIES) { if (t.includes(c.toLowerCase())) return c; }
+for (const [dem, country] of Object.entries(DEMONYMS)) { if (t.includes(dem)) return country; }
+return null;
+}
+
+function detectProcess(text) {
+if (!text) return null;
+const t = text.toLowerCase();
+if (t.includes(“anaerobic natural”)) return “Anaerobic Natural”;
+if (t.includes(“anaerobic washed”)) return “Anaerobic Washed”;
+if (t.includes(“anaerobic honey”)) return “Anaerobic Honey”;
+if (t.includes(“anaerobic”)) return “Anaerobic”;
+if (t.includes(“carbonic maceration”)) return “Anaerobic”;
+if (t.includes(“black honey”)) return “Black Honey”;
+if (t.includes(“red honey”)) return “Red Honey”;
+if (t.includes(“yellow honey”)) return “Yellow Honey”;
+if (t.includes(“honey process”)) return “Honey”;
+if (/\bhoney\b/.test(t) && !t.includes(“honeyed”)) return “Honey”;
+if (t.includes(“supernatural”)) return “Natural”;
+if (t.includes(“natural process”)) return “Natural”;
+if (/\bnatural\b/.test(t)) return “Natural”;
+if (t.includes(“washed process”) || t.includes(“fully washed”)) return “Washed”;
+if (/\bwashed\b/.test(t)) return “Washed”;
+if (t.includes(“dried”)) return “Natural”;
+if (t.includes(“wine process”)) return “Natural”;
+return null;
+}
+
+function getProcessClass(p) {
+if (!p || p === “\u2014”) return “process-other”;
+const l = p.toLowerCase();
+if (l.includes(“anaerobic”) || l.includes(“carbonic”)) return “process-anaerobic”;
+if (l.includes(“natural”)) return “process-natural”;
+if (l.includes(“washed”)) return “process-washed”;
+if (l.includes(“honey”)) return “process-honey”;
+return “process-other”;
+}
+
+function detectRoast(variants) {
+let esp = false, flt = false;
+for (const v of variants) {
+const t = [v.title, v.option1, v.option2, v.option3].filter(Boolean).join(” “).toLowerCase();
+if (t.includes(“espresso”) || t === “esp”) esp = true;
+if (t.includes(“filter”) || t === “flt” || t.includes(“pour over”)) flt = true;
+}
+if (esp && flt) return “Both”;
+if (flt) return “Filter”;
+if (esp) return “Espresso”;
+return “Espresso”;
+}
+
+function getPrice(variants, currency) {
+const prices = variants.filter(v => v.available !== false).map(v => parseFloat(v.price)).filter(p => !isNaN(p) && p > 0);
+if (prices.length === 0) {
+const all = variants.map(v => parseFloat(v.price)).filter(p => !isNaN(p) && p > 0);
+return all.length ? currency + Math.min(…all).toFixed(0) : currency + “?”;
+}
+return currency + Math.min(…prices).toFixed(0);
+}
+
+function isAvailable(variants) { return variants.some(v => v.available === true); }
+
+function stripHtml(html) {
+if (!html) return “”;
+return html.replace(/<[^>]+>/g, “ “).replace(/&/g, “&”).replace(/</g, “<”)
+.replace(/>/g, “>”).replace(/'/g, “’”).replace(/"/g, ‘”’)
+.replace(/'/g, “’”).replace(/ /g, “ “).replace(/\s+/g, “ “).trim();
+}
+
+// ============================================================
+// PRODUCT FILTER — lightweight since we’re using collection endpoints
+// ============================================================
+function isCoffeeProduct(product) {
+const title = (product.title || “”).toLowerCase();
+const type = (product.product_type || “”).toLowerCase();
+const tags = (product.tags || []).join(” “).toLowerCase();
+
+// Exclude obvious non-coffee items that may appear in collections
+const excludeWords = [
+“subscription”,“gift card”,“gift-card”,“t-shirt”,“tshirt”,“hoodie”,“beanie”,
+“mug “,“cup “,“grinder”,“scale”,“kettle”,“filter paper”,“dripper”,“brewer”,
+“hario”,“aeropress”,“chemex”,“comandante”,“moccamaster”,“timemore”,“acaia”,
+“origami”,“merchandise”,“merch”,“tote bag”,“poster”,“sticker”,
+“starter kit”,“chocolate bar”,” tea “,“candle”,“soap”,“towel”,“apron”,
+“drip bag”,“drip bags”,“capsule”,“capsules”,“nespresso”,“pod “,“pods”,
+“instant coffee”,“machine”,“breville”,“cascara”,“morning mini”,
+“sampler pack”,“voucher”,“gift voucher”,“keep cup”,“brewing guide”,
+“advent”,“birthday”,“pic’n’mix”,“pic\u2019n\u2019mix”,
+“delter”,“nanofoamer”,“tamper”,“portafilter”,“knock box”,
+“milk jug”,“server”,“carafe”,“thermometer”,“brush”,
+“coffee press”,“plunger”,“v60”,“cold brew bottle”,
+];
+for (const w of excludeWords) { if (title.includes(w)) return false; }
+
+// Also check tags for capsule/drip bag indicators
+if (tags.includes(“capsule”) || tags.includes(“drip bag”) || tags.includes(“drip-bag”)) return false;
+
+return true;
+}
+
+// ============================================================
+// DEDUPLICATION — by normalized title within each store
+// ============================================================
+function deduplicateBeans(beans) {
+const seen = new Map();
+return beans.filter(bean => {
+const key = bean.roaster + “||” + bean.name.toLowerCase().replace(/[^a-z0-9]/g, “ “).replace(/\s+/g, “ “).trim();
+if (seen.has(key)) return false;
+seen.set(key, true);
+return true;
+});
+}
+
+// ============================================================
+// PROUD MARY PARSER
+// ============================================================
+function parseProudMary(products, store) {
+return products.filter(isCoffeeProduct).map(p => {
+const parts = p.title.split(”|”).map(s => s.trim());
+const desc = stripHtml(p.body_html);
+const tagsStr = (p.tags || []).join(” “);
+let name, origin, process;
+
+```
+if (parts.length >= 4) {
+  // Standard format: Origin | Farm | Variety | Process
+  origin = parts[0]; name = parts.slice(0, 2).join(" \u00B7 ");
+  process = detectProcess(parts[3]) || parts[3];
+} else if (parts.length === 3) {
+  origin = detectOrigin(parts[0]) ? parts[0] : null;
+  name = parts.slice(0, 2).join(" \u00B7 ");
+  process = detectProcess(parts[2]) || detectProcess(p.title) || "\u2014";
+} else {
+  // Blends and simple names: Angel Wings, Ghost Rider, Humbler, etc.
+  name = p.title;
+  origin = detectOrigin(p.title) || detectOrigin(tagsStr) || detectOrigin(desc);
+  process = detectProcess(p.title) || detectProcess(tagsStr) || detectProcess(desc);
+  if (!origin) origin = "Blend";
+}
+
+return {
+  roaster: store.name, roasterColor: store.color,
+  name, origin: origin || "Blend", process: process || "\u2014",
+  roast: detectRoast(p.variants || []),
+  price: getPrice(p.variants || [], store.currency),
+  available: isAvailable(p.variants || []),
+  url: store.baseUrl + "/products/" + p.handle,
+};
+```
+
+});
+}
+
+// ============================================================
+// ALCHEMIST PARSER — deep body_html + demonym mapping
+// ============================================================
+function parseAlchemist(products, store) {
+return products.filter(isCoffeeProduct).map(p => {
+const type = (p.product_type || “”);
+const tags = (p.tags || []);
+const tagsLower = tags.map(t => t.toLowerCase().trim());
+const desc = stripHtml(p.body_html);
+
+```
+let origin = null, process = null;
+
+// Strategy 1: Tags — exact country and process names
+for (const tag of tags) {
+  const tc = tag.trim();
+  if (!origin) {
+    for (const c of COUNTRIES) {
+      if (tc.toLowerCase() === c.toLowerCase()) { origin = c; break; }
+    }
+  }
+  if (!process) { const f = detectProcess(tc); if (f) process = f; }
+}
+
+// Strategy 2: product_type "Origin - Process" pattern
+if (!origin || !process) {
+  const m = type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);
+  if (m) {
+    if (!origin) origin = detectOrigin(m[1].trim());
+    if (!process) process = detectProcess(m[2].trim());
+  }
+}
+
+// Strategy 3: product_type as whole
+if (!origin) origin = detectOrigin(type);
+if (!process) process = detectProcess(type);
+
+// Strategy 4: title
+if (!origin) origin = detectOrigin(p.title);
+if (!process) process = detectProcess(p.title);
+
+// Strategy 5: FULL body description with demonym support
+if (!origin) origin = detectOrigin(desc);
+if (!process) process = detectProcess(desc);
+
+// Roast from variants and tags
+let roast = detectRoast(p.variants || []);
+const hasEsp = tagsLower.some(t => t === "espresso");
+const hasFlt = tagsLower.some(t => t === "filter");
+if (hasEsp && hasFlt) roast = "Both";
+else if (hasFlt && !hasEsp) roast = "Filter";
+else if (hasEsp && !hasFlt) roast = "Espresso";
+
+return {
+  roaster: store.name, roasterColor: store.color,
+  name: p.title, origin: origin || "\u2014", process: process || "\u2014",
+  roast, price: getPrice(p.variants || [], store.currency),
+  available: isAvailable(p.variants || []),
+  url: store.baseUrl + "/products/" + p.handle,
+};
+```
+
+});
+}
+
+// ============================================================
+// MAILLARD PROJECT PARSER
+// ============================================================
+function parseMaillard(products, store) {
+return products.filter(isCoffeeProduct).map(p => {
+const tags = (p.tags || []);
+const tagsStr = tags.join(” “);
+const desc = stripHtml(p.body_html);
+
+```
+let origin = null;
+for (const tag of tags) { const f = detectOrigin(tag); if (f) { origin = f; break; } }
+if (!origin) origin = detectOrigin(p.title) || detectOrigin(desc);
+
+let process = detectProcess(p.title) || detectProcess(tagsStr) || detectProcess(desc);
+
+return {
+  roaster: store.name, roasterColor: store.color,
+  name: p.title, origin: origin || "\u2014", process: process || "\u2014",
+  roast: detectRoast(p.variants || []),
+  price: getPrice(p.variants || [], store.currency),
+  available: isAvailable(p.variants || []),
+  url: store.baseUrl + "/products/" + p.handle,
+};
+```
+
+});
+}
+
+// ============================================================
+// MR ROASTING CO PARSER
+// ============================================================
+function parseMRRC(products, store) {
+return products.filter(isCoffeeProduct).map(p => {
+const tags = (p.tags || []);
+const desc = stripHtml(p.body_html);
+
+```
+let origin = null;
+for (const tag of tags) { const f = detectOrigin(tag); if (f) { origin = f; break; } }
+if (!origin) origin = detectOrigin(p.title) || detectOrigin(desc);
+
+let process = null;
+for (const tag of tags) { const f = detectProcess(tag); if (f) { process = f; break; } }
+if (!process) process = detectProcess(p.title) || detectProcess(desc);
+
+const isBlend = !origin || tags.some(t => t.toLowerCase().includes("blend"));
+return {
+  roaster: store.name, roasterColor: store.color,
+  name: p.title, origin: isBlend ? "Blend" : (origin || "\u2014"),
+  process: process || "\u2014",
+  roast: detectRoast(p.variants || []),
+  price: getPrice(p.variants || [], store.currency),
+  available: isAvailable(p.variants || []),
+  url: store.baseUrl + "/products/" + p.handle,
+};
+```
+
+});
+}
+
+// ============================================================
+// DATA FETCHING — with pagination + collection endpoints
+// ============================================================
+async function fetchStore(store) {
+try {
+const allProducts = [];
+const seenIds = new Set();
+for (const url of store.apiUrls) {
+try {
+const resp = await fetch(url);
+if (!resp.ok) continue;
+const data = await resp.json();
+const products = data.products || [];
+if (products.length === 0) break;
+// Deduplicate by product ID across collection fetches
+for (const p of products) {
+if (!seenIds.has(p.id)) {
+seenIds.add(p.id);
+allProducts.push(p);
+}
+}
+} catch (e) {
+console.warn(“Page fetch failed for “ + store.name + “:”, url, e);
+}
+}
+if (allProducts.length === 0) throw new Error(“No products returned”);
+const beans = store.parse(allProducts, store);
+return { store: store.name, beans: deduplicateBeans(beans), error: null };
+} catch (err) {
+console.error(“Failed to fetch “ + store.name + “:”, err);
+return { store: store.name, beans: [], error: err.message };
+}
+}
+
+async function fetchAllStores() {
+const results = await Promise.all(STORES.map(fetchStore));
+const errors = [];
+allBeans = [];
+for (const r of results) {
+if (r.error) errors.push(r.store + “: “ + r.error);
+allBeans.push(…r.beans);
+}
+const errDiv = document.getElementById(“errors”);
+errDiv.innerHTML = errors.length
+? ‘<div class="error-notice">\u26A0 COULD NOT REACH: ’ + errors.join(” \u00B7 “) + ’ \u2014 Data shown is from reachable stores only.</div>’
+: “”;
+document.getElementById(“loading”).style.display = “none”;
+renderBoard();
+updateFooter();
+}
+
+// ============================================================
+// FILTERING
+// ============================================================
+function getFilteredBeans() {
+return allBeans.filter(bean => {
+if (filters.roaster !== “ALL” && bean.roaster !== filters.roaster) return false;
+if (filters.process !== “ALL” && !(bean.process || “”).toLowerCase().includes(filters.process.toLowerCase())) return false;
+if (filters.roast !== “ALL” && bean.roast !== “Both” && bean.roast !== filters.roast) return false;
+if (filters.status === “AVAIL” && !bean.available) return false;
+if (filters.status === “SOLD” && bean.available) return false;
+return true;
+});
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+function createFlapText(text, baseDelay, fontSize) {
+const c = document.createElement(“span”);
+c.className = “flap-text”;
+if (fontSize) c.style.fontSize = fontSize;
+(text || “\u2014”).toUpperCase().split(””).forEach((ch, i) => {
+const s = document.createElement(“span”);
+s.className = “flap-char” + (ch === “ “ ? “ space” : “”);
+s.textContent = ch;
+setTimeout(() => s.classList.add(“revealed”), baseDelay + i * 12);
+c.appendChild(s);
+});
+return c;
+}
+
+function renderBoard() {
+const board = document.getElementById(“board”);
+board.querySelectorAll(”.board-row, #empty-msg”).forEach(r => r.remove());
+const beans = getFilteredBeans();
+
+if (beans.length === 0 && allBeans.length > 0) {
+const e = document.createElement(“div”);
+e.className = “loading-state”; e.id = “empty-msg”;
+e.innerHTML = ‘<div class="loading-text">NO OFFERINGS MATCH CURRENT FILTERS</div>’;
+board.appendChild(e); updateFooter(); return;
+}
+
+beans.forEach((bean, i) => {
+const row = document.createElement(“a”);
+row.className = “board-row row-hidden”;
+row.href = bean.url; row.target = “_blank”; row.rel = “noopener”;
+const d = i * 60;
+
+```
+const rc = document.createElement("div"); rc.className = "roaster-cell";
+const bar = document.createElement("span"); bar.className = "roaster-bar"; bar.style.background = bean.roasterColor;
+rc.appendChild(bar); rc.appendChild(createFlapText(bean.roaster, d, "11px")); row.appendChild(rc);
+
+const nc = document.createElement("div"); nc.appendChild(createFlapText(bean.name, d+30, "12px")); row.appendChild(nc);
+
+const oc = document.createElement("div"); oc.appendChild(createFlapText(bean.origin, d+60, "11px")); row.appendChild(oc);
+
+const pc = document.createElement("div");
+const badge = document.createElement("span"); badge.className = "process-badge " + getProcessClass(bean.process);
+badge.textContent = (bean.process || "\u2014").toUpperCase(); badge.style.opacity = "0"; badge.style.transition = "opacity 0.3s ease";
+setTimeout(() => badge.style.opacity = "1", d+90); pc.appendChild(badge); row.appendChild(pc);
+
+const roc = document.createElement("div");
+const rs = document.createElement("span"); rs.className = "roast-label";
+if (bean.roast === "Both") { rs.classList.add("roast-both"); rs.textContent = "E / F"; }
+else if (bean.roast === "Filter") { rs.classList.add("roast-flt"); rs.textContent = "FLT"; }
+else { rs.classList.add("roast-esp"); rs.textContent = "ESP"; }
+rs.style.opacity = "0"; rs.style.transition = "opacity 0.3s ease";
+setTimeout(() => rs.style.opacity = "1", d+110); roc.appendChild(rs); row.appendChild(roc);
+
+const prc = document.createElement("div"); prc.appendChild(createFlapText(bean.price, d+130, "12px")); row.appendChild(prc);
+
+const sc = document.createElement("div");
+const sb = document.createElement("span"); sb.className = "status-badge " + (bean.available ? "status-in-stock" : "status-sold-out");
+sb.textContent = bean.available ? "\u25CF AVAIL" : "\u25CF SOLD"; sb.style.opacity = "0"; sb.style.transition = "opacity 0.3s ease";
+setTimeout(() => sb.style.opacity = "1", d+160); sc.appendChild(sb); row.appendChild(sc);
+
+board.appendChild(row);
+setTimeout(() => row.classList.replace("row-hidden", "row-visible"), d+10);
+```
+
+});
+updateFooter();
+}
+
+function updateFooter() {
+document.getElementById(“count”).textContent = getFilteredBeans().length + “ OFFERINGS DISPLAYED”;
+const now = new Date();
+document.getElementById(“refresh-time”).textContent = “LAST REFRESH: “ + now.toLocaleTimeString(“en-GB”, { hour: “2-digit”, minute: “2-digit”, second: “2-digit” });
+}
+
+function updateClock() {
+const now = new Date();
+document.getElementById(“clock”).textContent = now.toLocaleTimeString(“en-GB”, { hour: “2-digit”, minute: “2-digit”, second: “2-digit” });
+document.getElementById(“date”).textContent = now.toLocaleDateString(“en-GB”, { weekday: “short”, day: “numeric”, month: “short”, year: “numeric” }).toUpperCase();
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+document.querySelectorAll(”.filter-btn”).forEach(btn => {
+btn.addEventListener(“click”, () => {
+const g = btn.dataset.filter, v = btn.dataset.value;
+filters[g] = (filters[g] === v && v !== “ALL”) ? “ALL” : v;
+document.querySelectorAll(’.filter-btn[data-filter=”’+g+’”]’).forEach(b => {
+b.classList.toggle(“active”, b.dataset.value === filters[g]);
+});
+renderBoard();
+});
+});
+
+// ============================================================
+// INIT
+// ============================================================
+updateClock();
+setInterval(updateClock, 1000);
+fetchAllStores();
+setInterval(fetchAllStores, 30 * 60 * 1000);
+</script>
+
+</body>
+</html>
