@@ -87,6 +87,8 @@
   .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes pulse { 0%, 80%, 100% { opacity: 0.15; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
   .error-notice { padding: 8px 16px; margin-bottom: 12px; border: 1px solid #7F1D1D; border-radius: 4px; background: rgba(127,29,29,0.1); font-size: 10px; color: #EF4444; letter-spacing: 0.05em; }
+  .debug-log { padding: 8px 16px; margin-bottom: 12px; border: 1px solid #333; border-radius: 4px; background: rgba(255,255,255,0.02); font-size: 9px; color: #666; letter-spacing: 0.03em; max-height: 120px; overflow-y: auto; display: none; }
+  .debug-log.visible { display: block; }
   footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #1A1A1A; flex-wrap: wrap; gap: 8px; }
   footer span { font-size: 10px; color: #333; letter-spacing: 0.12em; }
   @media (max-width: 900px) {
@@ -159,6 +161,7 @@
     </div>
   </div>
   <div id="errors"></div>
+  <div id="debug" class="debug-log"></div>
   <div class="board-scroll">
     <div class="board-header">
       <span>ROASTER</span><span>COFFEE</span><span>ORIGIN</span>
@@ -179,47 +182,63 @@
 </div>
 <script>
 // ============================================================
+// CORS PROXY — routes requests through a public proxy service
+// to bypass Shopify CORS restrictions on browser requests.
+// ============================================================
+const CORS_PROXY = "https://corsproxy.io/?";
+
+function proxiedUrl(url) {
+return CORS_PROXY + encodeURIComponent(url);
+}
+
+// ============================================================
+// DEBUG LOG — visible on page to help diagnose issues
+// ============================================================
+function debugLog(msg) {
+console.log(msg);
+const el = document.getElementById(“debug”);
+el.classList.add(“visible”);
+el.innerHTML += msg + “<br>”;
+}
+
+// ============================================================
 // STORE CONFIGS — ordered: Alchemist, Maillard, Proud Mary, MRRC
-// Uses COLLECTION endpoints instead of global /products.json
-// to get exactly the coffees each roaster shows on their site.
 // ============================================================
 const STORES = [
-  {
-    name: "Alchemist", color: "#4ECDC4", currency: "S$",
-    baseUrl: "https://alchemist.global",
-    // Fetch both espresso and filter bean collections
-    apiUrls: [
-      "/proxy?url=" + encodeURIComponent("https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250"),
-      "/proxy?url=" + encodeURIComponent("https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250")
-    ],
-    parse: parseAlchemist
-  },
-  {
-    name: "Maillard Project", color: "#E8475F", currency: "A$",
-    baseUrl: "https://themaillardproject.com.au",
-    apiUrls: [
-      "/proxy?url=" + encodeURIComponent("https://themaillardproject.com.au/products.json?limit=250&page=1")
-    ],
-    parse: parseMaillard
-  },
-  {
-    name: "Proud Mary", color: "#F5A623", currency: "A$",
-    baseUrl: "https://www.proudmarycoffee.com.au",
-    // Use the /collections/coffee endpoint — exactly what their coffee page shows
-    apiUrls: [
-      "/proxy?url=" + encodeURIComponent("https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250"),
-      "/proxy?url=" + encodeURIComponent("https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2")
-    ],
-    parse: parseProudMary
-  },
-  {
-    name: "MR Roasting Co", color: "#9B8EC4", currency: "A$",
-    baseUrl: "https://margaretriverroasting.com.au",
-    apiUrls: [
-      "/proxy?url=" + encodeURIComponent("https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250")
-    ],
-    parse: parseMRRC
-  },
+{
+name: “Alchemist”, color: “#4ECDC4”, currency: “S$”,
+baseUrl: “https://alchemist.global”,
+sourceUrls: [
+“https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250”,
+“https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250”
+],
+parse: parseAlchemist
+},
+{
+name: “Maillard Project”, color: “#E8475F”, currency: “A$”,
+baseUrl: “https://themaillardproject.com.au”,
+sourceUrls: [
+“https://themaillardproject.com.au/products.json?limit=250&page=1”
+],
+parse: parseMaillard
+},
+{
+name: “Proud Mary”, color: “#F5A623”, currency: “A$”,
+baseUrl: “https://www.proudmarycoffee.com.au”,
+sourceUrls: [
+“https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250”,
+“https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2”
+],
+parse: parseProudMary
+},
+{
+name: “MR Roasting Co”, color: “#9B8EC4”, currency: “A$”,
+baseUrl: “https://margaretriverroasting.com.au”,
+sourceUrls: [
+“https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250”
+],
+parse: parseMRRC
+},
 ];
 
 let allBeans = [];
@@ -319,15 +338,10 @@ return html.replace(/<[^>]+>/g, “ “).replace(/&/g, “&”).replace(/</g, �
 .replace(/'/g, “’”).replace(/ /g, “ “).replace(/\s+/g, “ “).trim();
 }
 
-// ============================================================
-// PRODUCT FILTER — lightweight since we’re using collection endpoints
-// ============================================================
 function isCoffeeProduct(product) {
 const title = (product.title || “”).toLowerCase();
 const type = (product.product_type || “”).toLowerCase();
 const tags = (product.tags || []).join(” “).toLowerCase();
-
-// Exclude obvious non-coffee items that may appear in collections
 const excludeWords = [
 “subscription”,“gift card”,“gift-card”,“t-shirt”,“tshirt”,“hoodie”,“beanie”,
 “mug “,“cup “,“grinder”,“scale”,“kettle”,“filter paper”,“dripper”,“brewer”,
@@ -337,22 +351,16 @@ const excludeWords = [
 “drip bag”,“drip bags”,“capsule”,“capsules”,“nespresso”,“pod “,“pods”,
 “instant coffee”,“machine”,“breville”,“cascara”,“morning mini”,
 “sampler pack”,“voucher”,“gift voucher”,“keep cup”,“brewing guide”,
-“advent”,“birthday”,“pic’n’mix”,“pic\u2019n\u2019mix”,
+“advent”,“birthday”,“pic’n’mix”,
 “delter”,“nanofoamer”,“tamper”,“portafilter”,“knock box”,
 “milk jug”,“server”,“carafe”,“thermometer”,“brush”,
 “coffee press”,“plunger”,“v60”,“cold brew bottle”,
 ];
 for (const w of excludeWords) { if (title.includes(w)) return false; }
-
-// Also check tags for capsule/drip bag indicators
 if (tags.includes(“capsule”) || tags.includes(“drip bag”) || tags.includes(“drip-bag”)) return false;
-
 return true;
 }
 
-// ============================================================
-// DEDUPLICATION — by normalized title within each store
-// ============================================================
 function deduplicateBeans(beans) {
 const seen = new Map();
 return beans.filter(bean => {
@@ -364,7 +372,7 @@ return true;
 }
 
 // ============================================================
-// PROUD MARY PARSER
+// PARSERS
 // ============================================================
 function parseProudMary(products, store) {
 return products.filter(isCoffeeProduct).map(p => {
@@ -372,198 +380,132 @@ const parts = p.title.split(”|”).map(s => s.trim());
 const desc = stripHtml(p.body_html);
 const tagsStr = (p.tags || []).join(” “);
 let name, origin, process;
-
-```
 if (parts.length >= 4) {
-  // Standard format: Origin | Farm | Variety | Process
-  origin = parts[0]; name = parts.slice(0, 2).join(" \u00B7 ");
-  process = detectProcess(parts[3]) || parts[3];
+origin = parts[0]; name = parts.slice(0, 2).join(” \u00B7 “);
+process = detectProcess(parts[3]) || parts[3];
 } else if (parts.length === 3) {
-  origin = detectOrigin(parts[0]) ? parts[0] : null;
-  name = parts.slice(0, 2).join(" \u00B7 ");
-  process = detectProcess(parts[2]) || detectProcess(p.title) || "\u2014";
+origin = detectOrigin(parts[0]) ? parts[0] : null;
+name = parts.slice(0, 2).join(” \u00B7 “);
+process = detectProcess(parts[2]) || detectProcess(p.title) || “\u2014”;
 } else {
-  // Blends and simple names: Angel Wings, Ghost Rider, Humbler, etc.
-  name = p.title;
-  origin = detectOrigin(p.title) || detectOrigin(tagsStr) || detectOrigin(desc);
-  process = detectProcess(p.title) || detectProcess(tagsStr) || detectProcess(desc);
-  if (!origin) origin = "Blend";
+name = p.title;
+origin = detectOrigin(p.title) || detectOrigin(tagsStr) || detectOrigin(desc);
+process = detectProcess(p.title) || detectProcess(tagsStr) || detectProcess(desc);
+if (!origin) origin = “Blend”;
 }
-
-return {
-  roaster: store.name, roasterColor: store.color,
-  name, origin: origin || "Blend", process: process || "\u2014",
-  roast: detectRoast(p.variants || []),
-  price: getPrice(p.variants || [], store.currency),
-  available: isAvailable(p.variants || []),
-  url: store.baseUrl + "/products/" + p.handle,
-};
-```
-
+return { roaster: store.name, roasterColor: store.color, name, origin: origin || “Blend”, process: process || “\u2014”, roast: detectRoast(p.variants || []), price: getPrice(p.variants || [], store.currency), available: isAvailable(p.variants || []), url: store.baseUrl + “/products/” + p.handle };
 });
 }
 
-// ============================================================
-// ALCHEMIST PARSER — deep body_html + demonym mapping
-// ============================================================
 function parseAlchemist(products, store) {
 return products.filter(isCoffeeProduct).map(p => {
 const type = (p.product_type || “”);
 const tags = (p.tags || []);
 const tagsLower = tags.map(t => t.toLowerCase().trim());
 const desc = stripHtml(p.body_html);
-
-```
 let origin = null, process = null;
-
-// Strategy 1: Tags — exact country and process names
 for (const tag of tags) {
-  const tc = tag.trim();
-  if (!origin) {
-    for (const c of COUNTRIES) {
-      if (tc.toLowerCase() === c.toLowerCase()) { origin = c; break; }
-    }
-  }
-  if (!process) { const f = detectProcess(tc); if (f) process = f; }
+const tc = tag.trim();
+if (!origin) { for (const c of COUNTRIES) { if (tc.toLowerCase() === c.toLowerCase()) { origin = c; break; } } }
+if (!process) { const f = detectProcess(tc); if (f) process = f; }
 }
-
-// Strategy 2: product_type "Origin - Process" pattern
 if (!origin || !process) {
-  const m = type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);
-  if (m) {
-    if (!origin) origin = detectOrigin(m[1].trim());
-    if (!process) process = detectProcess(m[2].trim());
-  }
+const m = type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);
+if (m) { if (!origin) origin = detectOrigin(m[1].trim()); if (!process) process = detectProcess(m[2].trim()); }
 }
-
-// Strategy 3: product_type as whole
 if (!origin) origin = detectOrigin(type);
 if (!process) process = detectProcess(type);
-
-// Strategy 4: title
 if (!origin) origin = detectOrigin(p.title);
 if (!process) process = detectProcess(p.title);
-
-// Strategy 5: FULL body description with demonym support
 if (!origin) origin = detectOrigin(desc);
 if (!process) process = detectProcess(desc);
-
-// Roast from variants and tags
 let roast = detectRoast(p.variants || []);
-const hasEsp = tagsLower.some(t => t === "espresso");
-const hasFlt = tagsLower.some(t => t === "filter");
-if (hasEsp && hasFlt) roast = "Both";
-else if (hasFlt && !hasEsp) roast = "Filter";
-else if (hasEsp && !hasFlt) roast = "Espresso";
-
-return {
-  roaster: store.name, roasterColor: store.color,
-  name: p.title, origin: origin || "\u2014", process: process || "\u2014",
-  roast, price: getPrice(p.variants || [], store.currency),
-  available: isAvailable(p.variants || []),
-  url: store.baseUrl + "/products/" + p.handle,
-};
-```
-
+const hasEsp = tagsLower.some(t => t === “espresso”);
+const hasFlt = tagsLower.some(t => t === “filter”);
+if (hasEsp && hasFlt) roast = “Both”;
+else if (hasFlt && !hasEsp) roast = “Filter”;
+else if (hasEsp && !hasFlt) roast = “Espresso”;
+return { roaster: store.name, roasterColor: store.color, name: p.title, origin: origin || “\u2014”, process: process || “\u2014”, roast, price: getPrice(p.variants || [], store.currency), available: isAvailable(p.variants || []), url: store.baseUrl + “/products/” + p.handle };
 });
 }
 
-// ============================================================
-// MAILLARD PROJECT PARSER
-// ============================================================
 function parseMaillard(products, store) {
 return products.filter(isCoffeeProduct).map(p => {
-const tags = (p.tags || []);
-const tagsStr = tags.join(” “);
-const desc = stripHtml(p.body_html);
-
-```
+const tags = (p.tags || []); const tagsStr = tags.join(” “); const desc = stripHtml(p.body_html);
 let origin = null;
 for (const tag of tags) { const f = detectOrigin(tag); if (f) { origin = f; break; } }
 if (!origin) origin = detectOrigin(p.title) || detectOrigin(desc);
-
 let process = detectProcess(p.title) || detectProcess(tagsStr) || detectProcess(desc);
-
-return {
-  roaster: store.name, roasterColor: store.color,
-  name: p.title, origin: origin || "\u2014", process: process || "\u2014",
-  roast: detectRoast(p.variants || []),
-  price: getPrice(p.variants || [], store.currency),
-  available: isAvailable(p.variants || []),
-  url: store.baseUrl + "/products/" + p.handle,
-};
-```
-
+return { roaster: store.name, roasterColor: store.color, name: p.title, origin: origin || “\u2014”, process: process || “\u2014”, roast: detectRoast(p.variants || []), price: getPrice(p.variants || [], store.currency), available: isAvailable(p.variants || []), url: store.baseUrl + “/products/” + p.handle };
 });
 }
 
-// ============================================================
-// MR ROASTING CO PARSER
-// ============================================================
 function parseMRRC(products, store) {
 return products.filter(isCoffeeProduct).map(p => {
-const tags = (p.tags || []);
-const desc = stripHtml(p.body_html);
-
-```
+const tags = (p.tags || []); const desc = stripHtml(p.body_html);
 let origin = null;
 for (const tag of tags) { const f = detectOrigin(tag); if (f) { origin = f; break; } }
 if (!origin) origin = detectOrigin(p.title) || detectOrigin(desc);
-
 let process = null;
 for (const tag of tags) { const f = detectProcess(tag); if (f) { process = f; break; } }
 if (!process) process = detectProcess(p.title) || detectProcess(desc);
-
-const isBlend = !origin || tags.some(t => t.toLowerCase().includes("blend"));
-return {
-  roaster: store.name, roasterColor: store.color,
-  name: p.title, origin: isBlend ? "Blend" : (origin || "\u2014"),
-  process: process || "\u2014",
-  roast: detectRoast(p.variants || []),
-  price: getPrice(p.variants || [], store.currency),
-  available: isAvailable(p.variants || []),
-  url: store.baseUrl + "/products/" + p.handle,
-};
-```
-
+const isBlend = !origin || tags.some(t => t.toLowerCase().includes(“blend”));
+return { roaster: store.name, roasterColor: store.color, name: p.title, origin: isBlend ? “Blend” : (origin || “\u2014”), process: process || “\u2014”, roast: detectRoast(p.variants || []), price: getPrice(p.variants || [], store.currency), available: isAvailable(p.variants || []), url: store.baseUrl + “/products/” + p.handle };
 });
 }
 
 // ============================================================
-// DATA FETCHING — with pagination + collection endpoints
+// DATA FETCHING — tries direct first, falls back to CORS proxy
 // ============================================================
+async function fetchJson(url) {
+// Try direct first (works if Shopify allows CORS)
+try {
+const resp = await fetch(url);
+if (resp.ok) {
+const data = await resp.json();
+return data;
+}
+} catch (e) {
+// CORS or network error — try proxy
+}
+
+// Fallback: use CORS proxy
+const proxyUrl = proxiedUrl(url);
+const resp = await fetch(proxyUrl);
+if (!resp.ok) throw new Error(“Proxy HTTP “ + resp.status);
+return await resp.json();
+}
+
 async function fetchStore(store) {
 try {
 const allProducts = [];
 const seenIds = new Set();
-for (const url of store.apiUrls) {
+for (const url of store.sourceUrls) {
 try {
-const resp = await fetch(url);
-if (!resp.ok) continue;
-const data = await resp.json();
+debugLog(”[” + store.name + “] Fetching: “ + url.split(”/”).slice(2,3).join(””) + “…”);
+const data = await fetchJson(url);
 const products = data.products || [];
+debugLog(”[” + store.name + “] Got “ + products.length + “ products”);
 if (products.length === 0) break;
-// Deduplicate by product ID across collection fetches
 for (const p of products) {
-if (!seenIds.has(p.id)) {
-seenIds.add(p.id);
-allProducts.push(p);
-}
+if (!seenIds.has(p.id)) { seenIds.add(p.id); allProducts.push(p); }
 }
 } catch (e) {
-console.warn(“Page fetch failed for “ + store.name + “:”, url, e);
+debugLog(”[” + store.name + “] Page error: “ + e.message);
 }
 }
 if (allProducts.length === 0) throw new Error(“No products returned”);
 const beans = store.parse(allProducts, store);
+debugLog(”[” + store.name + “] Parsed “ + beans.length + “ coffees”);
 return { store: store.name, beans: deduplicateBeans(beans), error: null };
 } catch (err) {
-console.error(“Failed to fetch “ + store.name + “:”, err);
+debugLog(”[” + store.name + “] FAILED: “ + err.message);
 return { store: store.name, beans: [], error: err.message };
 }
 }
 
 async function fetchAllStores() {
+debugLog(“Starting fetch at “ + new Date().toLocaleTimeString());
 const results = await Promise.all(STORES.map(fetchStore));
 const errors = [];
 allBeans = [];
@@ -571,9 +513,10 @@ for (const r of results) {
 if (r.error) errors.push(r.store + “: “ + r.error);
 allBeans.push(…r.beans);
 }
+debugLog(“Total beans: “ + allBeans.length + “ | Errors: “ + errors.length);
 const errDiv = document.getElementById(“errors”);
 errDiv.innerHTML = errors.length
-? ‘<div class="error-notice">\u26A0 COULD NOT REACH: ’ + errors.join(” \u00B7 “) + ’ \u2014 Data shown is from reachable stores only.</div>’
+? ’<div class="error-notice">\u26A0 COULD NOT REACH: ’ + errors.join(” \u00B7 “) + ‘</div>’
 : “”;
 document.getElementById(“loading”).style.display = “none”;
 renderBoard();
@@ -615,53 +558,40 @@ function renderBoard() {
 const board = document.getElementById(“board”);
 board.querySelectorAll(”.board-row, #empty-msg”).forEach(r => r.remove());
 const beans = getFilteredBeans();
-
 if (beans.length === 0 && allBeans.length > 0) {
 const e = document.createElement(“div”);
 e.className = “loading-state”; e.id = “empty-msg”;
 e.innerHTML = ‘<div class="loading-text">NO OFFERINGS MATCH CURRENT FILTERS</div>’;
 board.appendChild(e); updateFooter(); return;
 }
-
 beans.forEach((bean, i) => {
 const row = document.createElement(“a”);
 row.className = “board-row row-hidden”;
 row.href = bean.url; row.target = “_blank”; row.rel = “noopener”;
 const d = i * 60;
-
-```
-const rc = document.createElement("div"); rc.className = "roaster-cell";
-const bar = document.createElement("span"); bar.className = "roaster-bar"; bar.style.background = bean.roasterColor;
-rc.appendChild(bar); rc.appendChild(createFlapText(bean.roaster, d, "11px")); row.appendChild(rc);
-
-const nc = document.createElement("div"); nc.appendChild(createFlapText(bean.name, d+30, "12px")); row.appendChild(nc);
-
-const oc = document.createElement("div"); oc.appendChild(createFlapText(bean.origin, d+60, "11px")); row.appendChild(oc);
-
-const pc = document.createElement("div");
-const badge = document.createElement("span"); badge.className = "process-badge " + getProcessClass(bean.process);
-badge.textContent = (bean.process || "\u2014").toUpperCase(); badge.style.opacity = "0"; badge.style.transition = "opacity 0.3s ease";
-setTimeout(() => badge.style.opacity = "1", d+90); pc.appendChild(badge); row.appendChild(pc);
-
-const roc = document.createElement("div");
-const rs = document.createElement("span"); rs.className = "roast-label";
-if (bean.roast === "Both") { rs.classList.add("roast-both"); rs.textContent = "E / F"; }
-else if (bean.roast === "Filter") { rs.classList.add("roast-flt"); rs.textContent = "FLT"; }
-else { rs.classList.add("roast-esp"); rs.textContent = "ESP"; }
-rs.style.opacity = "0"; rs.style.transition = "opacity 0.3s ease";
-setTimeout(() => rs.style.opacity = "1", d+110); roc.appendChild(rs); row.appendChild(roc);
-
-const prc = document.createElement("div"); prc.appendChild(createFlapText(bean.price, d+130, "12px")); row.appendChild(prc);
-
-const sc = document.createElement("div");
-const sb = document.createElement("span"); sb.className = "status-badge " + (bean.available ? "status-in-stock" : "status-sold-out");
-sb.textContent = bean.available ? "\u25CF AVAIL" : "\u25CF SOLD"; sb.style.opacity = "0"; sb.style.transition = "opacity 0.3s ease";
-setTimeout(() => sb.style.opacity = "1", d+160); sc.appendChild(sb); row.appendChild(sc);
-
+const rc = document.createElement(“div”); rc.className = “roaster-cell”;
+const bar = document.createElement(“span”); bar.className = “roaster-bar”; bar.style.background = bean.roasterColor;
+rc.appendChild(bar); rc.appendChild(createFlapText(bean.roaster, d, “11px”)); row.appendChild(rc);
+const nc = document.createElement(“div”); nc.appendChild(createFlapText(bean.name, d+30, “12px”)); row.appendChild(nc);
+const oc = document.createElement(“div”); oc.appendChild(createFlapText(bean.origin, d+60, “11px”)); row.appendChild(oc);
+const pc = document.createElement(“div”);
+const badge = document.createElement(“span”); badge.className = “process-badge “ + getProcessClass(bean.process);
+badge.textContent = (bean.process || “\u2014”).toUpperCase(); badge.style.opacity = “0”; badge.style.transition = “opacity 0.3s ease”;
+setTimeout(() => badge.style.opacity = “1”, d+90); pc.appendChild(badge); row.appendChild(pc);
+const roc = document.createElement(“div”);
+const rs = document.createElement(“span”); rs.className = “roast-label”;
+if (bean.roast === “Both”) { rs.classList.add(“roast-both”); rs.textContent = “E / F”; }
+else if (bean.roast === “Filter”) { rs.classList.add(“roast-flt”); rs.textContent = “FLT”; }
+else { rs.classList.add(“roast-esp”); rs.textContent = “ESP”; }
+rs.style.opacity = “0”; rs.style.transition = “opacity 0.3s ease”;
+setTimeout(() => rs.style.opacity = “1”, d+110); roc.appendChild(rs); row.appendChild(roc);
+const prc = document.createElement(“div”); prc.appendChild(createFlapText(bean.price, d+130, “12px”)); row.appendChild(prc);
+const sc = document.createElement(“div”);
+const sb = document.createElement(“span”); sb.className = “status-badge “ + (bean.available ? “status-in-stock” : “status-sold-out”);
+sb.textContent = bean.available ? “\u25CF AVAIL” : “\u25CF SOLD”; sb.style.opacity = “0”; sb.style.transition = “opacity 0.3s ease”;
+setTimeout(() => sb.style.opacity = “1”, d+160); sc.appendChild(sb); row.appendChild(sc);
 board.appendChild(row);
-setTimeout(() => row.classList.replace("row-hidden", "row-visible"), d+10);
-```
-
+setTimeout(() => row.classList.replace(“row-hidden”, “row-visible”), d+10);
 });
 updateFooter();
 }
@@ -678,9 +608,6 @@ document.getElementById(“clock”).textContent = now.toLocaleTimeString(“en-
 document.getElementById(“date”).textContent = now.toLocaleDateString(“en-GB”, { weekday: “short”, day: “numeric”, month: “short”, year: “numeric” }).toUpperCase();
 }
 
-// ============================================================
-// EVENTS
-// ============================================================
 document.querySelectorAll(”.filter-btn”).forEach(btn => {
 btn.addEventListener(“click”, () => {
 const g = btn.dataset.filter, v = btn.dataset.value;
@@ -692,9 +619,6 @@ renderBoard();
 });
 });
 
-// ============================================================
-// INIT
-// ============================================================
 updateClock();
 setInterval(updateClock, 1000);
 fetchAllStores();
