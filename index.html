@@ -1,200 +1,1305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Coffee Rabbit Hole</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alice&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-body{min-height:100vh;background:#0A0A0A;color:#E8DCC8;font-family:'JetBrains Mono',monospace;-webkit-font-smoothing:antialiased}
-.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-.scanlines{position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px)}
-#app{position:relative;z-index:3;max-width:1240px;margin:0 auto;padding:24px 20px}
-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:2px solid #1A1A1A}
-.title-row{display:flex;align-items:center;gap:14px;margin-bottom:6px}
-.title-row .logo{font-size:26px;filter:drop-shadow(0 0 8px rgba(245,166,35,.3))}
-.title-row h1{font-family:'Alice',serif;font-size:30px;font-weight:400;letter-spacing:.04em;color:#E8DCC8;text-shadow:0 0 20px rgba(245,166,35,.15),0 2px 4px rgba(0,0,0,.5)}
-.title-row h1 .wa{color:#F5A623;font-style:italic}
-.subtitle{font-size:11px;color:#555;letter-spacing:.15em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
-.clock{font-size:24px;font-weight:300;letter-spacing:.15em;color:#F5A623;margin-bottom:2px;text-align:right}
-.date{font-size:10px;color:#555;letter-spacing:.15em;text-align:right}
-.roaster-links{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #1A1A1A}
-.roaster-links-label{font-size:10px;color:#444;letter-spacing:.15em;margin-right:4px}
-.roaster-links a{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.06em;text-decoration:none;text-transform:uppercase;transition:all .2s ease;border:1px solid transparent}
-.roaster-links a .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.roaster-links a .arrow{opacity:.5;font-size:9px}
-.roaster-links a:hover{border-color:currentColor}
-.fg{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.fl{font-size:10px;color:#444;letter-spacing:.15em;min-width:62px;text-transform:uppercase}
-.fb{padding:5px 12px;border-radius:4px;border:1px solid #2A2A2A;background:transparent;color:#555;font-size:11px;font-weight:600;letter-spacing:.06em;cursor:pointer;font-family:inherit;text-transform:uppercase;transition:all .2s ease}
-.fb:hover{border-color:#444;color:#888}
-.fb.active{border-color:#E8DCC8;color:#E8DCC8;background:rgba(232,220,200,.06)}
-.fb.active[data-color]{border-color:var(--c);color:var(--c);background:rgba(255,255,255,.04)}
-.bh{display:grid;grid-template-columns:130px 1fr 100px 140px 70px 70px 70px;gap:12px;padding:8px 16px;border-bottom:2px solid #222;margin-bottom:2px}
-.bh span{font-size:9px;font-weight:700;letter-spacing:.2em;color:#444;text-transform:uppercase}
-#board{background:rgba(255,255,255,.01);border-radius:4px;border:1px solid #151515;min-height:200px}
-.br{display:grid;grid-template-columns:130px 1fr 100px 140px 70px 70px 70px;gap:12px;align-items:center;padding:9px 16px;border-bottom:1px solid #1A1A1A;text-decoration:none;color:inherit;transition:background .15s ease;cursor:pointer}
-.br:hover{background:rgba(255,255,255,.025)}
-.br:nth-child(even){background:rgba(255,255,255,.008)}
-.br:nth-child(even):hover{background:rgba(255,255,255,.03)}
-.br.rh{opacity:0;transform:translateY(4px)}
-.br.rv{opacity:1;transform:translateY(0);transition:opacity .3s ease,transform .3s ease}
-.rc{display:flex;align-items:center;gap:8px}
-.rb{width:3px;height:20px;border-radius:2px;flex-shrink:0}
-.ft{display:inline-flex;flex-wrap:nowrap;overflow:hidden}
-.fc{display:inline-block;background:#0D0D0D;color:#0D0D0D;padding:1px 1.5px;margin:0 .3px;border-radius:2px;font-family:inherit;font-size:inherit;line-height:1.4;transition:background .05s ease,color .05s ease}
-.fc.rev{background:#1A1A1A;color:#E8DCC8;box-shadow:inset 0 -1px 0 rgba(255,255,255,.05),inset 0 1px 0 rgba(0,0,0,.4)}
-.fc.sp{min-width:.35em;background:transparent!important;box-shadow:none!important}
-.pb{display:inline-block;padding:3px 7px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
-.pn{background:#5C2D0E;color:#FFB347}.pw{background:#0E3B5C;color:#47B3FF}.pa{background:#3B0E5C;color:#C847FF}.ph{background:#5C4A0E;color:#FFD747}.po{background:#2A2A2A;color:#666}
-.rl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.re{color:#F5A623}.rf{color:#47B3FF}.rb2{color:#E8DCC8}
-.sb{display:inline-block;padding:3px 8px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.si{background:#0A3A1A;color:#34D399;border:1px solid #166534}
-.so{background:#3A0A0A;color:#EF4444;border:1px solid #7F1D1D}
-.ls{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px}
-.lt{font-size:12px;letter-spacing:.2em;color:#555;text-transform:uppercase}
-.ld span{display:inline-block;width:8px;height:8px;border-radius:50%;background:#F5A623;margin:0 4px;animation:pulse 1.4s ease-in-out infinite}
-.ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
-@keyframes pulse{0%,80%,100%{opacity:.15;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-.en{padding:8px 16px;margin-bottom:12px;border:1px solid #7F1D1D;border-radius:4px;background:rgba(127,29,29,.1);font-size:10px;color:#EF4444;letter-spacing:.05em}
-#dbg{padding:8px 16px;margin-bottom:12px;border:1px solid #333;border-radius:4px;background:rgba(255,255,255,.02);font-size:9px;color:#666;letter-spacing:.03em;max-height:120px;overflow-y:auto;display:none}
-#dbg.vis{display:block}
-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid #1A1A1A;flex-wrap:wrap;gap:8px}
-footer span{font-size:10px;color:#333;letter-spacing:.12em}
-@media(max-width:900px){.bh,.br{grid-template-columns:100px 1fr 80px 110px 50px 55px 60px;gap:6px;padding:8px 10px}.title-row h1{font-size:22px}.clock{font-size:18px}}
-@media(max-width:700px){#app{padding:16px 10px}.bs{overflow-x:auto;-webkit-overflow-scrolling:touch}.bh,.br{min-width:720px}header{flex-direction:column;gap:12px}.hr{display:flex;gap:12px;align-items:baseline}.clock,.date{text-align:left}footer{flex-direction:column;align-items:flex-start}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee Punk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alice&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0A0A0A;
+      color: #E8DCC8;
+      font-family: 'JetBrains Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── CRT overlay effects ── */
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: .03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, .12) 2px,
+        rgba(0, 0, 0, .12) 4px
+      );
+    }
+
+    /* ── Layout ── */
+    #app {
+      position: relative;
+      z-index: 3;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #1A1A1A;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 6px;
+    }
+
+    .title-row .logo {
+      font-size: 26px;
+      filter: drop-shadow(0 0 8px rgba(52, 211, 153, .3));
+    }
+
+    .title-row h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: #34D399;
+      text-transform: uppercase;
+      border: 2px solid #34D399;
+      padding: 8px 18px;
+      border-radius: 4px;
+      text-shadow: 0 0 20px rgba(52, 211, 153, .2);
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .date {
+      font-size: 10px;
+      color: #555;
+      letter-spacing: .15em;
+      text-align: right;
+    }
+
+    /* ── Roaster links ── */
+    .roaster-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #1A1A1A;
+    }
+
+    .roaster-links-label {
+      font-size: 10px;
+      color: #444;
+      letter-spacing: .15em;
+      margin-right: 4px;
+    }
+
+    .roaster-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all .2s ease;
+      border: 1px solid transparent;
+    }
+
+    .roaster-links a .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .roaster-links a .arrow {
+      opacity: .5;
+      font-size: 9px;
+    }
+
+    .roaster-links a:hover {
+      border-color: currentColor;
+    }
+
+    /* ── Filter buttons ── */
+    .fg {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .fl {
+      font-size: 10px;
+      color: #444;
+      letter-spacing: .15em;
+      min-width: 62px;
+      text-transform: uppercase;
+    }
+
+    .fb {
+      padding: 5px 12px;
+      border-radius: 4px;
+      border: 1px solid #2A2A2A;
+      background: transparent;
+      color: #555;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      transition: all .2s ease;
+    }
+
+    .fb:hover {
+      border-color: #444;
+      color: #888;
+    }
+
+    .fb.active {
+      border-color: #E8DCC8;
+      color: #E8DCC8;
+      background: rgba(232, 220, 200, .06);
+    }
+
+    .fb.active[data-color] {
+      border-color: var(--c);
+      color: var(--c);
+      background: rgba(255, 255, 255, .04);
+    }
+
+    /* ── Board grid ── */
+    .bh {
+      display: grid;
+      grid-template-columns: 130px 1fr 100px 140px 70px 70px 70px;
+      gap: 12px;
+      padding: 8px 16px;
+      border-bottom: 2px solid #222;
+      margin-bottom: 2px;
+    }
+
+    .bh span {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      color: #444;
+      text-transform: uppercase;
+    }
+
+    #board {
+      background: rgba(255, 255, 255, .01);
+      border-radius: 4px;
+      border: 1px solid #151515;
+      min-height: 200px;
+    }
+
+    .br {
+      display: grid;
+      grid-template-columns: 130px 1fr 100px 140px 70px 70px 70px;
+      gap: 12px;
+      align-items: center;
+      padding: 9px 16px;
+      border-bottom: 1px solid #1A1A1A;
+      text-decoration: none;
+      color: inherit;
+      transition: background .15s ease;
+      cursor: pointer;
+    }
+
+    .br:hover {
+      background: rgba(255, 255, 255, .025);
+    }
+
+    .br:nth-child(even) {
+      background: rgba(255, 255, 255, .008);
+    }
+
+    .br:nth-child(even):hover {
+      background: rgba(255, 255, 255, .03);
+    }
+
+    /* Row animation */
+    .br.rh {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    .br.rv {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity .3s ease, transform .3s ease;
+    }
+
+    /* Roaster color bar */
+    .rc {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rb {
+      width: 3px;
+      height: 20px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Flap-board text animation ── */
+    .ft {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .fc {
+      display: inline-block;
+      background: #0D0D0D;
+      color: #0D0D0D;
+      padding: 1px 1.5px;
+      margin: 0 .3px;
+      border-radius: 2px;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: 1.4;
+      transition: background .05s ease, color .05s ease;
+    }
+
+    .fc.rev {
+      background: #1A1A1A;
+      color: #E8DCC8;
+      box-shadow:
+        inset 0 -1px 0 rgba(255, 255, 255, .05),
+        inset 0 1px 0 rgba(0, 0, 0, .4);
+    }
+
+    .fc.sp {
+      min-width: .35em;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
+    /* ── Process badges ── */
+    .pb {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .pn { background: #5C2D0E; color: #FFB347; }  /* Natural */
+    .pw { background: #0E3B5C; color: #47B3FF; }  /* Washed */
+    .pa { background: #3B0E5C; color: #C847FF; }  /* Anaerobic */
+    .ph { background: #5C4A0E; color: #FFD747; }  /* Honey */
+    .po { background: #2A2A2A; color: #666; }      /* Other */
+
+    /* ── Roast labels ── */
+    .rl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .re { color: #F5A623; }   /* Espresso */
+    .rf { color: #47B3FF; }   /* Filter */
+    .rb2 { color: #E8DCC8; }  /* Both */
+
+    /* ── Status badges ── */
+    .sb {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .si {
+      background: #0A3A1A;
+      color: #34D399;
+      border: 1px solid #166534;
+    }
+
+    .so {
+      background: #3A0A0A;
+      color: #EF4444;
+      border: 1px solid #7F1D1D;
+    }
+
+    /* ── Loading state ── */
+    .ls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      gap: 16px;
+    }
+
+    .lt {
+      font-size: 12px;
+      letter-spacing: .2em;
+      color: #555;
+      text-transform: uppercase;
+    }
+
+    .ld span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #F5A623;
+      margin: 0 4px;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    .ld span:nth-child(2) { animation-delay: .2s; }
+    .ld span:nth-child(3) { animation-delay: .4s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: .15; transform: scale(.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ── Error & debug panels ── */
+    .en {
+      padding: 8px 16px;
+      margin-bottom: 12px;
+      border: 1px solid #7F1D1D;
+      border-radius: 4px;
+      background: rgba(127, 29, 29, .1);
+      font-size: 10px;
+      color: #EF4444;
+      letter-spacing: .05em;
+    }
+
+    #dbg {
+      padding: 8px 16px;
+      margin-top: 16px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .02);
+      font-size: 9px;
+      color: #666;
+      letter-spacing: .03em;
+      max-height: 120px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    #dbg.vis {
+      display: block;
+    }
+
+    /* ── Footer ── */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #1A1A1A;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    footer span {
+      font-size: 10px;
+      color: #333;
+      letter-spacing: .12em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .bh, .br {
+        grid-template-columns: 100px 1fr 80px 110px 50px 55px 60px;
+        gap: 6px;
+        padding: 8px 10px;
+      }
+      .title-row h1 {
+        font-size: 22px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      #app {
+        padding: 16px 10px;
+      }
+      .bs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .bh, .br {
+        min-width: 720px;
+      }
+      header {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .hr {
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+      }
+      .date {
+        text-align: left;
+      }
+      footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="noise"></div>
-<div class="scanlines"></div>
-<div id="app">
-<header>
-<div>
-<div class="title-row"><span class="logo">&#x1F407;</span><h1>My Coffee <span class="wa">Rabbit Hole</span></h1></div>
-<p class="subtitle">Live offerings from my favourite roasters</p>
-</div>
-<div class="hr"><div class="clock" id="clock"></div><div class="date" id="date"></div></div>
-</header>
-<nav class="roaster-links">
-<span class="roaster-links-label">ROASTERS</span>
-<a href="https://alchemist.global" target="_blank" style="color:#4ECDC4"><span class="dot" style="background:#4ECDC4"></span>ALCHEMIST<span class="arrow">&#x2197;</span></a>
-<a href="https://themaillardproject.com.au" target="_blank" style="color:#E8475F"><span class="dot" style="background:#E8475F"></span>MAILLARD PROJECT<span class="arrow">&#x2197;</span></a>
-<a href="https://www.proudmarycoffee.com.au" target="_blank" style="color:#F5A623"><span class="dot" style="background:#F5A623"></span>PROUD MARY<span class="arrow">&#x2197;</span></a>
-<a href="https://margaretriverroasting.com.au" target="_blank" style="color:#9B8EC4"><span class="dot" style="background:#9B8EC4"></span>MR ROASTING CO<span class="arrow">&#x2197;</span></a>
-</nav>
-<div id="filters">
-<div class="fg"><span class="fl">ROASTER</span>
-<button class="fb active" data-filter="roaster" data-value="ALL">ALL</button>
-<button class="fb" data-filter="roaster" data-value="Alchemist" style="--c:#4ECDC4" data-color>ALCHEMIST</button>
-<button class="fb" data-filter="roaster" data-value="Maillard Project" style="--c:#E8475F" data-color>MAILLARD PROJECT</button>
-<button class="fb" data-filter="roaster" data-value="Proud Mary" style="--c:#F5A623" data-color>PROUD MARY</button>
-<button class="fb" data-filter="roaster" data-value="MR Roasting Co" style="--c:#9B8EC4" data-color>MR ROASTING CO</button>
-</div>
-<div class="fg"><span class="fl">PROCESS</span>
-<button class="fb active" data-filter="process" data-value="ALL">ALL</button>
-<button class="fb" data-filter="process" data-value="Washed" style="--c:#47B3FF" data-color>WASHED</button>
-<button class="fb" data-filter="process" data-value="Natural" style="--c:#FFB347" data-color>NATURAL</button>
-<button class="fb" data-filter="process" data-value="Anaerobic" style="--c:#C847FF" data-color>ANAEROBIC</button>
-<button class="fb" data-filter="process" data-value="Honey" style="--c:#FFD747" data-color>HONEY</button>
-</div>
-<div class="fg"><span class="fl">ROAST</span>
-<button class="fb active" data-filter="roast" data-value="ALL">ALL</button>
-<button class="fb" data-filter="roast" data-value="Espresso" style="--c:#F5A623" data-color>ESPRESSO</button>
-<button class="fb" data-filter="roast" data-value="Filter" style="--c:#47B3FF" data-color>FILTER</button>
-</div>
-<div class="fg"><span class="fl">STATUS</span>
-<button class="fb" data-filter="status" data-value="ALL">ALL</button>
-<button class="fb active" data-filter="status" data-value="AVAIL" style="--c:#34D399" data-color>AVAILABLE</button>
-<button class="fb" data-filter="status" data-value="SOLD" style="--c:#EF4444" data-color>SOLD OUT</button>
-</div>
-</div>
-<div id="errors"></div>
-<div id="dbg"></div>
-<div class="bs">
-<div class="bh"><span>ROASTER</span><span>COFFEE</span><span>ORIGIN</span><span>PROCESS</span><span>ROAST</span><span>PRICE</span><span>STATUS</span></div>
-<div id="board"><div class="ls" id="loading"><div class="ld"><span></span><span></span><span></span></div><div class="lt">FETCHING LIVE OFFERINGS...</div></div></div>
-</div>
-<footer><span id="count"></span><span id="refresh-time"></span><span style="font-family:'Alice',serif;font-size:11px;color:#444;">curiouser and curiouser&#x2026;</span></footer>
-</div>
-<script>
-// CORS proxy with correct URL format and fallbacks
-var PROXIES=["https://corsproxy.io/?url=","https://api.allorigins.win/raw?url="];
-var proxyIdx=0;
+  <div class="noise"></div>
+  <div class="scanlines"></div>
 
-function proxied(u){return PROXIES[proxyIdx]+encodeURIComponent(u)}
+  <div id="app">
 
-function dlog(m){console.log(m);var e=document.getElementById("dbg");e.className="vis";e.innerHTML+=m+"<br>"}
+    <!-- ═══ Header ═══ -->
+    <header>
+      <div>
+        <div class="title-row">
+          <h1>Coffee Punk</h1>
+        </div>
+        <p class="subtitle">Live offerings from my favourite roasters</p>
+      </div>
+      <div class="hr">
+        <div class="date" id="date"></div>
+      </div>
+    </header>
 
-var STORES=[
-{name:"Alchemist",color:"#4ECDC4",cur:"S$",base:"https://alchemist.global",urls:["https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250","https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250"],parse:parseAlch},
-{name:"Maillard Project",color:"#E8475F",cur:"A$",base:"https://themaillardproject.com.au",urls:["https://themaillardproject.com.au/products.json?limit=250&page=1"],parse:parseMail},
-{name:"Proud Mary",color:"#F5A623",cur:"A$",base:"https://www.proudmarycoffee.com.au",urls:["https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250","https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2"],parse:parsePM},
-{name:"MR Roasting Co",color:"#9B8EC4",cur:"A$",base:"https://margaretriverroasting.com.au",urls:["https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250"],parse:parseMRRC}
-];
+    <!-- ═══ Roaster links ═══ -->
+    <nav class="roaster-links">
+      <span class="roaster-links-label">ROASTERS</span>
+      <a href="https://alchemist.global" target="_blank" style="color:#4ECDC4">
+        <span class="dot" style="background:#4ECDC4"></span>ALCHEMIST<span class="arrow">&#x2197;</span>
+      </a>
+      <a href="https://themaillardproject.com.au" target="_blank" style="color:#E8475F">
+        <span class="dot" style="background:#E8475F"></span>MAILLARD PROJECT<span class="arrow">&#x2197;</span>
+      </a>
+      <a href="https://www.proudmarycoffee.com.au" target="_blank" style="color:#F5A623">
+        <span class="dot" style="background:#F5A623"></span>PROUD MARY<span class="arrow">&#x2197;</span>
+      </a>
+      <a href="https://margaretriverroasting.com.au" target="_blank" style="color:#9B8EC4">
+        <span class="dot" style="background:#9B8EC4"></span>MR ROASTING CO<span class="arrow">&#x2197;</span>
+      </a>
+    </nav>
 
-var allBeans=[],filters={roaster:"ALL",process:"ALL",roast:"ALL",status:"AVAIL"};
+    <!-- ═══ Filters ═══ -->
+    <div id="filters">
+      <div class="fg">
+        <span class="fl">ROASTER</span>
+        <button class="fb active" data-filter="roaster" data-value="ALL">ALL</button>
+        <button class="fb" data-filter="roaster" data-value="Alchemist" style="--c:#4ECDC4" data-color>ALCHEMIST</button>
+        <button class="fb" data-filter="roaster" data-value="Maillard Project" style="--c:#E8475F" data-color>MAILLARD PROJECT</button>
+        <button class="fb" data-filter="roaster" data-value="Proud Mary" style="--c:#F5A623" data-color>PROUD MARY</button>
+        <button class="fb" data-filter="roaster" data-value="MR Roasting Co" style="--c:#9B8EC4" data-color>MR ROASTING CO</button>
+      </div>
+      <div class="fg">
+        <span class="fl">PROCESS</span>
+        <button class="fb active" data-filter="process" data-value="ALL">ALL</button>
+        <button class="fb" data-filter="process" data-value="Washed" style="--c:#47B3FF" data-color>WASHED</button>
+        <button class="fb" data-filter="process" data-value="Natural" style="--c:#FFB347" data-color>NATURAL</button>
+        <button class="fb" data-filter="process" data-value="Anaerobic" style="--c:#C847FF" data-color>ANAEROBIC</button>
+        <button class="fb" data-filter="process" data-value="Honey" style="--c:#FFD747" data-color>HONEY</button>
+      </div>
+      <div class="fg">
+        <span class="fl">ROAST</span>
+        <button class="fb active" data-filter="roast" data-value="ALL">ALL</button>
+        <button class="fb" data-filter="roast" data-value="Espresso" style="--c:#F5A623" data-color>ESPRESSO</button>
+        <button class="fb" data-filter="roast" data-value="Filter" style="--c:#47B3FF" data-color>FILTER</button>
+      </div>
+      <div class="fg">
+        <span class="fl">STATUS</span>
+        <button class="fb" data-filter="status" data-value="ALL">ALL</button>
+        <button class="fb active" data-filter="status" data-value="AVAIL" style="--c:#34D399" data-color>AVAILABLE</button>
+        <button class="fb" data-filter="status" data-value="SOLD" style="--c:#EF4444" data-color>SOLD OUT</button>
+      </div>
+    </div>
 
-var COUNTRIES=["Ethiopia","Colombia","Kenya","Guatemala","Mexico","Nicaragua","Honduras","Costa Rica","Panama","El Salvador","Brazil","Peru","Thailand","Uganda","Rwanda","Burundi","Indonesia","India","Bolivia","Ecuador","Tanzania","Papua New Guinea","Myanmar","Yemen","China","Japan","Australia","Laos","Vietnam","Congo","Zambia","Malawi","Zimbabwe","Hawaii"];
-var DEMONYMS={"ethiopian":"Ethiopia","colombian":"Colombia","kenyan":"Kenya","guatemalan":"Guatemala","mexican":"Mexico","nicaraguan":"Nicaragua","honduran":"Honduras","costa rican":"Costa Rica","panamanian":"Panama","salvadoran":"El Salvador","salvadorean":"El Salvador","brazilian":"Brazil","peruvian":"Peru","thai":"Thailand","ugandan":"Uganda","rwandan":"Rwanda","indonesian":"Indonesia","bolivian":"Bolivia","ecuadorian":"Ecuador","tanzanian":"Tanzania","yemeni":"Yemen","vietnamese":"Vietnam"};
+    <!-- ═══ Error display ═══ -->
+    <div id="errors"></div>
 
-function detectOrigin(t){if(!t)return null;var l=t.toLowerCase();for(var i=0;i<COUNTRIES.length;i++){if(l.indexOf(COUNTRIES[i].toLowerCase())!==-1)return COUNTRIES[i]}for(var d in DEMONYMS){if(l.indexOf(d)!==-1)return DEMONYMS[d]}return null}
+    <!-- ═══ Board ═══ -->
+    <div class="bs">
+      <div class="bh">
+        <span>ROASTER</span>
+        <span>COFFEE</span>
+        <span>ORIGIN</span>
+        <span>PROCESS</span>
+        <span>ROAST</span>
+        <span>PRICE</span>
+        <span>STATUS</span>
+      </div>
+      <div id="board">
+        <div class="ls" id="loading">
+          <div class="ld"><span></span><span></span><span></span></div>
+          <div class="lt">FETCHING LIVE OFFERINGS...</div>
+        </div>
+      </div>
+    </div>
 
-function detectProcess(t){if(!t)return null;var l=t.toLowerCase();if(l.indexOf("anaerobic natural")!==-1)return"Anaerobic Natural";if(l.indexOf("anaerobic washed")!==-1)return"Anaerobic Washed";if(l.indexOf("anaerobic")!==-1)return"Anaerobic";if(l.indexOf("carbonic")!==-1)return"Anaerobic";if(l.indexOf("black honey")!==-1)return"Black Honey";if(l.indexOf("red honey")!==-1)return"Red Honey";if(l.indexOf("yellow honey")!==-1)return"Yellow Honey";if(l.indexOf("honey")!==-1&&l.indexOf("honeyed")===-1)return"Honey";if(l.indexOf("natural")!==-1)return"Natural";if(l.indexOf("washed")!==-1)return"Washed";if(l.indexOf("dried")!==-1)return"Natural";return null}
+    <!-- ═══ Footer ═══ -->
+    <footer>
+      <span id="count"></span>
+      <span id="refresh-time"></span>
+      <span style="font-family:'Alice',serif;font-size:11px;color:#444;">curiouser and curiouser&#x2026;</span>
+    </footer>
 
-function pcls(p){if(!p||p==="\u2014")return"po";var l=p.toLowerCase();if(l.indexOf("anaerobic")!==-1)return"pa";if(l.indexOf("natural")!==-1)return"pn";if(l.indexOf("washed")!==-1)return"pw";if(l.indexOf("honey")!==-1)return"ph";return"po"}
+    <!-- ═══ Debug log (bottom of page) ═══ -->
+    <div id="dbg"></div>
 
-function detectRoast(v){var e=false,f=false;for(var i=0;i<v.length;i++){var t=[v[i].title,v[i].option1,v[i].option2,v[i].option3].filter(Boolean).join(" ").toLowerCase();if(t.indexOf("espresso")!==-1)e=true;if(t.indexOf("filter")!==-1||t.indexOf("pour over")!==-1)f=true}if(e&&f)return"Both";if(f)return"Filter";return"Espresso"}
+  </div>
 
-function getPrice(v,c){var p=v.filter(function(x){return x.available!==false}).map(function(x){return parseFloat(x.price)}).filter(function(x){return!isNaN(x)&&x>0});if(!p.length){p=v.map(function(x){return parseFloat(x.price)}).filter(function(x){return!isNaN(x)&&x>0})}return p.length?c+Math.min.apply(null,p).toFixed(0):c+"?"}
+  <script>
+    // ════════════════════════════════════════════
+    //  CORS PROXY CONFIG
+    // ════════════════════════════════════════════
+    var PROXIES = [
+      "https://corsproxy.io/?url=",
+      "https://api.allorigins.win/raw?url="
+    ];
+    var proxyIdx = 0;
 
-function isAvail(v){return v.some(function(x){return x.available===true})}
+    function proxied(u) {
+      return PROXIES[proxyIdx] + encodeURIComponent(u);
+    }
 
-function stripHtml(h){if(!h)return"";return h.replace(/<[^>]+>/g," ").replace(/&amp;/g,"&").replace(/&nbsp;/g," ").replace(/\s+/g," ").trim()}
+    function dlog(m) {
+      console.log(m);
+      var e = document.getElementById("dbg");
+      e.className = "vis";
+      e.innerHTML += m + "<br>";
+    }
 
-function isCoffee(p){var t=(p.title||"").toLowerCase();var tags=(p.tags||[]).join(" ").toLowerCase();var ex=["subscription","gift card","t-shirt","hoodie","beanie","mug ","grinder","scale","kettle","filter paper","dripper","brewer","hario","aeropress","chemex","comandante","moccamaster","timemore","acaia","origami","merchandise","merch","tote","poster","sticker","chocolate","candle","soap","towel","apron","drip bag","capsule","nespresso","pod ","pods","instant coffee","machine","breville","cascara","morning mini","sampler","voucher","keep cup","brewing guide","advent","birthday","delter","nanofoamer","tamper","portafilter","knock box","milk jug","server","carafe","thermometer","coffee press","plunger","v60","cold brew bottle"];for(var i=0;i<ex.length;i++){if(t.indexOf(ex[i])!==-1)return false}if(tags.indexOf("capsule")!==-1||tags.indexOf("drip bag")!==-1)return false;return true}
 
-function dedup(beans){var seen={};return beans.filter(function(b){var k=b.roaster+"||"+b.name.toLowerCase().replace(/[^a-z0-9]/g," ").replace(/\s+/g," ").trim();if(seen[k])return false;seen[k]=true;return true})}
+    // ════════════════════════════════════════════
+    //  STORE DEFINITIONS
+    // ════════════════════════════════════════════
+    var STORES = [
+      {
+        name: "Alchemist",
+        color: "#4ECDC4",
+        cur: "S$",
+        base: "https://alchemist.global",
+        urls: [
+          "https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250",
+          "https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250"
+        ],
+        parse: parseAlch
+      },
+      {
+        name: "Maillard Project",
+        color: "#E8475F",
+        cur: "A$",
+        base: "https://themaillardproject.com.au",
+        urls: [
+          "https://themaillardproject.com.au/products.json?limit=250&page=1"
+        ],
+        parse: parseMail
+      },
+      {
+        name: "Proud Mary",
+        color: "#F5A623",
+        cur: "A$",
+        base: "https://www.proudmarycoffee.com.au",
+        urls: [
+          "https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250",
+          "https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2"
+        ],
+        parse: parsePM
+      },
+      {
+        name: "MR Roasting Co",
+        color: "#9B8EC4",
+        cur: "A$",
+        base: "https://margaretriverroasting.com.au",
+        urls: [
+          "https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250"
+        ],
+        parse: parseMRRC
+      }
+    ];
 
-function parsePM(products,s){return products.filter(isCoffee).map(function(p){var parts=p.title.split("|").map(function(x){return x.trim()});var desc=stripHtml(p.body_html);var tags=(p.tags||[]).join(" ");var name,origin,process;if(parts.length>=4){origin=parts[0];name=parts[0]+" \u00B7 "+parts[1];process=detectProcess(parts[3])||parts[3]}else if(parts.length===3){origin=detectOrigin(parts[0])?parts[0]:null;name=parts[0]+" \u00B7 "+parts[1];process=detectProcess(parts[2])||detectProcess(p.title)||"\u2014"}else{name=p.title;origin=detectOrigin(p.title)||detectOrigin(tags)||detectOrigin(desc);process=detectProcess(p.title)||detectProcess(tags)||detectProcess(desc);if(!origin)origin="Blend"}return{roaster:s.name,roasterColor:s.color,name:name,origin:origin||"Blend",process:process||"\u2014",roast:detectRoast(p.variants||[]),price:getPrice(p.variants||[],s.cur),available:isAvail(p.variants||[]),url:s.base+"/products/"+p.handle}})}
 
-function parseAlch(products,s){return products.filter(isCoffee).map(function(p){var type=p.product_type||"";var tags=p.tags||[];var desc=stripHtml(p.body_html);var origin=null,process=null;for(var i=0;i<tags.length;i++){var tc=tags[i].trim();if(!origin){for(var j=0;j<COUNTRIES.length;j++){if(tc.toLowerCase()===COUNTRIES[j].toLowerCase()){origin=COUNTRIES[j];break}}}if(!process){var f=detectProcess(tc);if(f)process=f}}if(!origin||!process){var m=type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);if(m){if(!origin)origin=detectOrigin(m[1]);if(!process)process=detectProcess(m[2])}}if(!origin)origin=detectOrigin(type)||detectOrigin(p.title)||detectOrigin(desc);if(!process)process=detectProcess(type)||detectProcess(p.title)||detectProcess(desc);var roast=detectRoast(p.variants||[]);var tl=tags.map(function(x){return x.toLowerCase().trim()});if(tl.indexOf("espresso")!==-1&&tl.indexOf("filter")!==-1)roast="Both";else if(tl.indexOf("filter")!==-1)roast="Filter";return{roaster:s.name,roasterColor:s.color,name:p.title,origin:origin||"\u2014",process:process||"\u2014",roast:roast,price:getPrice(p.variants||[],s.cur),available:isAvail(p.variants||[]),url:s.base+"/products/"+p.handle}})}
+    // ════════════════════════════════════════════
+    //  STATE
+    // ════════════════════════════════════════════
+    var allBeans = [];
+    var filters = {
+      roaster: "ALL",
+      process: "ALL",
+      roast: "ALL",
+      status: "AVAIL"
+    };
 
-function parseMail(products,s){return products.filter(isCoffee).map(function(p){var tags=(p.tags||[]);var desc=stripHtml(p.body_html);var origin=null;for(var i=0;i<tags.length;i++){var f=detectOrigin(tags[i]);if(f){origin=f;break}}if(!origin)origin=detectOrigin(p.title)||detectOrigin(desc);var process=detectProcess(p.title)||detectProcess(tags.join(" "))||detectProcess(desc);return{roaster:s.name,roasterColor:s.color,name:p.title,origin:origin||"\u2014",process:process||"\u2014",roast:detectRoast(p.variants||[]),price:getPrice(p.variants||[],s.cur),available:isAvail(p.variants||[]),url:s.base+"/products/"+p.handle}})}
 
-function parseMRRC(products,s){return products.filter(isCoffee).map(function(p){var tags=(p.tags||[]);var desc=stripHtml(p.body_html);var origin=null;for(var i=0;i<tags.length;i++){var f=detectOrigin(tags[i]);if(f){origin=f;break}}if(!origin)origin=detectOrigin(p.title)||detectOrigin(desc);var process=null;for(var i=0;i<tags.length;i++){var f=detectProcess(tags[i]);if(f){process=f;break}}if(!process)process=detectProcess(p.title)||detectProcess(desc);var isBlend=!origin||tags.some(function(t){return t.toLowerCase().indexOf("blend")!==-1});return{roaster:s.name,roasterColor:s.color,name:p.title,origin:isBlend?"Blend":(origin||"\u2014"),process:process||"\u2014",roast:detectRoast(p.variants||[]),price:getPrice(p.variants||[],s.cur),available:isAvail(p.variants||[]),url:s.base+"/products/"+p.handle}})}
+    // ════════════════════════════════════════════
+    //  ORIGIN / PROCESS / ROAST DETECTION
+    // ════════════════════════════════════════════
+    var COUNTRIES = [
+      "Ethiopia", "Colombia", "Kenya", "Guatemala", "Mexico", "Nicaragua",
+      "Honduras", "Costa Rica", "Panama", "El Salvador", "Brazil", "Peru",
+      "Thailand", "Uganda", "Rwanda", "Burundi", "Indonesia", "India",
+      "Bolivia", "Ecuador", "Tanzania", "Papua New Guinea", "Myanmar",
+      "Yemen", "China", "Japan", "Australia", "Laos", "Vietnam",
+      "Congo", "Zambia", "Malawi", "Zimbabwe", "Hawaii"
+    ];
 
-async function fetchJson(url){try{var r=await fetch(url);if(r.ok)return await r.json()}catch(e){}var pu=proxied(url);dlog("Using proxy for: "+url.split("/")[2]);var r2=await fetch(pu);if(!r2.ok)throw new Error("HTTP "+r2.status);return await r2.json()}
+    var DEMONYMS = {
+      "ethiopian": "Ethiopia",
+      "colombian": "Colombia",
+      "kenyan": "Kenya",
+      "guatemalan": "Guatemala",
+      "mexican": "Mexico",
+      "nicaraguan": "Nicaragua",
+      "honduran": "Honduras",
+      "costa rican": "Costa Rica",
+      "panamanian": "Panama",
+      "salvadoran": "El Salvador",
+      "salvadorean": "El Salvador",
+      "brazilian": "Brazil",
+      "peruvian": "Peru",
+      "thai": "Thailand",
+      "ugandan": "Uganda",
+      "rwandan": "Rwanda",
+      "indonesian": "Indonesia",
+      "bolivian": "Bolivia",
+      "ecuadorian": "Ecuador",
+      "tanzanian": "Tanzania",
+      "yemeni": "Yemen",
+      "vietnamese": "Vietnam"
+    };
 
-async function fetchStore(store){try{var all=[],ids={};for(var i=0;i<store.urls.length;i++){try{dlog("["+store.name+"] Fetching page "+(i+1)+"...");var data=await fetchJson(store.urls[i]);var prods=data.products||[];dlog("["+store.name+"] Got "+prods.length+" products");if(!prods.length)break;for(var j=0;j<prods.length;j++){if(!ids[prods[j].id]){ids[prods[j].id]=true;all.push(prods[j])}}}catch(e){dlog("["+store.name+"] Page error: "+e.message)}}if(!all.length)throw new Error("No products");var beans=store.parse(all,store);dlog("["+store.name+"] "+beans.length+" coffees parsed");return{store:store.name,beans:dedup(beans),error:null}}catch(e){dlog("["+store.name+"] FAILED: "+e.message);return{store:store.name,beans:[],error:e.message}}}
+    function detectOrigin(t) {
+      if (!t) return null;
+      var l = t.toLowerCase();
+      for (var i = 0; i < COUNTRIES.length; i++) {
+        if (l.indexOf(COUNTRIES[i].toLowerCase()) !== -1) return COUNTRIES[i];
+      }
+      for (var d in DEMONYMS) {
+        if (l.indexOf(d) !== -1) return DEMONYMS[d];
+      }
+      return null;
+    }
 
-async function fetchAll(){dlog("Starting fetch...");var results=await Promise.all(STORES.map(fetchStore));var errors=[];allBeans=[];for(var i=0;i<results.length;i++){if(results[i].error)errors.push(results[i].store);allBeans=allBeans.concat(results[i].beans)}dlog("Done! Total: "+allBeans.length+" coffees");document.getElementById("errors").innerHTML=errors.length?"<div class='en'>Could not reach: "+errors.join(", ")+"</div>":"";document.getElementById("loading").style.display="none";renderBoard();updateFooter()}
+    function detectProcess(t) {
+      if (!t) return null;
+      var l = t.toLowerCase();
+      if (l.indexOf("anaerobic natural") !== -1) return "Anaerobic Natural";
+      if (l.indexOf("anaerobic washed") !== -1) return "Anaerobic Washed";
+      if (l.indexOf("anaerobic") !== -1) return "Anaerobic";
+      if (l.indexOf("carbonic") !== -1) return "Anaerobic";
+      if (l.indexOf("black honey") !== -1) return "Black Honey";
+      if (l.indexOf("red honey") !== -1) return "Red Honey";
+      if (l.indexOf("yellow honey") !== -1) return "Yellow Honey";
+      if (l.indexOf("honey") !== -1 && l.indexOf("honeyed") === -1) return "Honey";
+      if (l.indexOf("natural") !== -1) return "Natural";
+      if (l.indexOf("washed") !== -1) return "Washed";
+      if (l.indexOf("dried") !== -1) return "Natural";
+      return null;
+    }
 
-function getFiltered(){return allBeans.filter(function(b){if(filters.roaster!=="ALL"&&b.roaster!==filters.roaster)return false;if(filters.process!=="ALL"&&(b.process||"").toLowerCase().indexOf(filters.process.toLowerCase())===-1)return false;if(filters.roast!=="ALL"&&b.roast!=="Both"&&b.roast!==filters.roast)return false;if(filters.status==="AVAIL"&&!b.available)return false;if(filters.status==="SOLD"&&b.available)return false;return true})}
+    function pcls(p) {
+      if (!p || p === "\u2014") return "po";
+      var l = p.toLowerCase();
+      if (l.indexOf("anaerobic") !== -1) return "pa";
+      if (l.indexOf("natural") !== -1) return "pn";
+      if (l.indexOf("washed") !== -1) return "pw";
+      if (l.indexOf("honey") !== -1) return "ph";
+      return "po";
+    }
 
-function mkFlap(text,delay,fs){var c=document.createElement("span");c.className="ft";if(fs)c.style.fontSize=fs;var chars=(text||"\u2014").toUpperCase().split("");for(var i=0;i<chars.length;i++){var s=document.createElement("span");s.className="fc"+(chars[i]===" "?" sp":"");s.textContent=chars[i];(function(el,d){setTimeout(function(){el.className+=" rev"},d)})(s,delay+i*12);c.appendChild(s)}return c}
+    function detectRoast(v) {
+      var e = false, f = false;
+      for (var i = 0; i < v.length; i++) {
+        var t = [v[i].title, v[i].option1, v[i].option2, v[i].option3]
+          .filter(Boolean).join(" ").toLowerCase();
+        if (t.indexOf("espresso") !== -1) e = true;
+        if (t.indexOf("filter") !== -1 || t.indexOf("pour over") !== -1) f = true;
+      }
+      if (e && f) return "Both";
+      if (f) return "Filter";
+      return "Espresso";
+    }
 
-function renderBoard(){var board=document.getElementById("board");var old=board.querySelectorAll(".br,#empty");for(var i=0;i<old.length;i++)old[i].remove();var beans=getFiltered();if(!beans.length&&allBeans.length){var e=document.createElement("div");e.className="ls";e.id="empty";e.innerHTML="<div class='lt'>NO OFFERINGS MATCH CURRENT FILTERS</div>";board.appendChild(e);updateFooter();return}for(var i=0;i<beans.length;i++){var b=beans[i],d=i*60;var row=document.createElement("a");row.className="br rh";row.href=b.url;row.target="_blank";
-var rc=document.createElement("div");rc.className="rc";var bar=document.createElement("span");bar.className="rb";bar.style.background=b.roasterColor;rc.appendChild(bar);rc.appendChild(mkFlap(b.roaster,d,"11px"));row.appendChild(rc);
-var nc=document.createElement("div");nc.appendChild(mkFlap(b.name,d+30,"12px"));row.appendChild(nc);
-var oc=document.createElement("div");oc.appendChild(mkFlap(b.origin,d+60,"11px"));row.appendChild(oc);
-var pc=document.createElement("div");var badge=document.createElement("span");badge.className="pb "+pcls(b.process);badge.textContent=(b.process||"\u2014").toUpperCase();badge.style.opacity="0";badge.style.transition="opacity .3s";(function(el,t){setTimeout(function(){el.style.opacity="1"},t)})(badge,d+90);pc.appendChild(badge);row.appendChild(pc);
-var roc=document.createElement("div");var rs=document.createElement("span");rs.className="rl";if(b.roast==="Both"){rs.className+=" rb2";rs.textContent="E / F"}else if(b.roast==="Filter"){rs.className+=" rf";rs.textContent="FLT"}else{rs.className+=" re";rs.textContent="ESP"}rs.style.opacity="0";rs.style.transition="opacity .3s";(function(el,t){setTimeout(function(){el.style.opacity="1"},t)})(rs,d+110);roc.appendChild(rs);row.appendChild(roc);
-var prc=document.createElement("div");prc.appendChild(mkFlap(b.price,d+130,"12px"));row.appendChild(prc);
-var sc=document.createElement("div");var sb2=document.createElement("span");sb2.className="sb "+(b.available?"si":"so");sb2.textContent=b.available?"\u25CF AVAIL":"\u25CF SOLD";sb2.style.opacity="0";sb2.style.transition="opacity .3s";(function(el,t){setTimeout(function(){el.style.opacity="1"},t)})(sb2,d+160);sc.appendChild(sb2);row.appendChild(sc);
-board.appendChild(row);(function(el,t){setTimeout(function(){el.className="br rv"},t)})(row,d+10)}updateFooter()}
 
-function updateFooter(){document.getElementById("count").textContent=getFiltered().length+" OFFERINGS DISPLAYED";var n=new Date();document.getElementById("refresh-time").textContent="LAST REFRESH: "+n.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}
+    // ════════════════════════════════════════════
+    //  UTILITY FUNCTIONS
+    // ════════════════════════════════════════════
+    function getPrice(v, c) {
+      var p = v
+        .filter(function(x) { return x.available !== false; })
+        .map(function(x) { return parseFloat(x.price); })
+        .filter(function(x) { return !isNaN(x) && x > 0; });
+      if (!p.length) {
+        p = v
+          .map(function(x) { return parseFloat(x.price); })
+          .filter(function(x) { return !isNaN(x) && x > 0; });
+      }
+      return p.length ? c + Math.min.apply(null, p).toFixed(0) : c + "?";
+    }
 
-function updateClock(){var n=new Date();document.getElementById("clock").textContent=n.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit"});document.getElementById("date").textContent=n.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"}).toUpperCase()}
+    function isAvail(v) {
+      return v.some(function(x) { return x.available === true; });
+    }
 
-var btns=document.querySelectorAll(".fb");for(var i=0;i<btns.length;i++){btns[i].addEventListener("click",function(){var g=this.dataset.filter,v=this.dataset.value;filters[g]=(filters[g]===v&&v!=="ALL")?"ALL":v;var all=document.querySelectorAll('.fb[data-filter="'+g+'"]');for(var j=0;j<all.length;j++){if(all[j].dataset.value===filters[g])all[j].classList.add("active");else all[j].classList.remove("active")}renderBoard()})}
+    function stripHtml(h) {
+      if (!h) return "";
+      return h
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&nbsp;/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
 
-updateClock();setInterval(updateClock,1000);fetchAll();setInterval(fetchAll,30*60*1000);
-</script>
+    function isCoffee(p) {
+      var t = (p.title || "").toLowerCase();
+      var tags = (p.tags || []).join(" ").toLowerCase();
+      var ex = [
+        "subscription", "gift card", "t-shirt", "hoodie", "beanie",
+        "mug ", "grinder", "scale", "kettle", "filter paper", "dripper",
+        "brewer", "hario", "aeropress", "chemex", "comandante",
+        "moccamaster", "timemore", "acaia", "origami", "merchandise",
+        "merch", "tote", "poster", "sticker", "chocolate", "candle",
+        "soap", "towel", "apron", "drip bag", "capsule", "nespresso",
+        "pod ", "pods", "instant coffee", "machine", "breville",
+        "cascara", "morning mini", "sampler", "voucher", "keep cup",
+        "brewing guide", "advent", "birthday", "delter", "nanofoamer",
+        "tamper", "portafilter", "knock box", "milk jug", "server",
+        "carafe", "thermometer", "coffee press", "plunger", "v60",
+        "cold brew bottle"
+      ];
+      for (var i = 0; i < ex.length; i++) {
+        if (t.indexOf(ex[i]) !== -1) return false;
+      }
+      if (tags.indexOf("capsule") !== -1 || tags.indexOf("drip bag") !== -1) return false;
+      return true;
+    }
+
+    function dedup(beans) {
+      var seen = {};
+      return beans.filter(function(b) {
+        var k = b.roaster + "||" + b.name.toLowerCase()
+          .replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
+        if (seen[k]) return false;
+        seen[k] = true;
+        return true;
+      });
+    }
+
+
+    // ════════════════════════════════════════════
+    //  STORE-SPECIFIC PARSERS
+    // ════════════════════════════════════════════
+
+    /**
+     * Proud Mary — pipe-delimited titles
+     * Format: Origin | Name | Varietal | Process
+     */
+    function parsePM(products, s) {
+      return products.filter(isCoffee).map(function(p) {
+        var parts = p.title.split("|").map(function(x) { return x.trim(); });
+        var desc = stripHtml(p.body_html);
+        var tags = (p.tags || []).join(" ");
+        var name, origin, process;
+
+        if (parts.length >= 4) {
+          origin = parts[0];
+          name = parts[0] + " \u00B7 " + parts[1];
+          process = detectProcess(parts[3]) || parts[3];
+        } else if (parts.length === 3) {
+          origin = detectOrigin(parts[0]) ? parts[0] : null;
+          name = parts[0] + " \u00B7 " + parts[1];
+          process = detectProcess(parts[2]) || detectProcess(p.title) || "\u2014";
+        } else {
+          name = p.title;
+          origin = detectOrigin(p.title) || detectOrigin(tags) || detectOrigin(desc);
+          process = detectProcess(p.title) || detectProcess(tags) || detectProcess(desc);
+          if (!origin) origin = "Blend";
+        }
+
+        return {
+          roaster: s.name,
+          roasterColor: s.color,
+          name: name,
+          origin: origin || "Blend",
+          process: process || "\u2014",
+          roast: detectRoast(p.variants || []),
+          price: getPrice(p.variants || [], s.cur),
+          available: isAvail(p.variants || []),
+          url: s.base + "/products/" + p.handle
+        };
+      });
+    }
+
+    /**
+     * Alchemist — tags contain origin country,
+     * product_type has "Origin - Process" format
+     */
+    function parseAlch(products, s) {
+      return products.filter(isCoffee).map(function(p) {
+        var type = p.product_type || "";
+        var tags = p.tags || [];
+        var desc = stripHtml(p.body_html);
+        var origin = null, process = null;
+
+        // Check tags for country names and process
+        for (var i = 0; i < tags.length; i++) {
+          var tc = tags[i].trim();
+          if (!origin) {
+            for (var j = 0; j < COUNTRIES.length; j++) {
+              if (tc.toLowerCase() === COUNTRIES[j].toLowerCase()) {
+                origin = COUNTRIES[j];
+                break;
+              }
+            }
+          }
+          if (!process) {
+            var f = detectProcess(tc);
+            if (f) process = f;
+          }
+        }
+
+        // Try product_type "Origin - Process" format
+        if (!origin || !process) {
+          var m = type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);
+          if (m) {
+            if (!origin) origin = detectOrigin(m[1]);
+            if (!process) process = detectProcess(m[2]);
+          }
+        }
+
+        if (!origin) origin = detectOrigin(type) || detectOrigin(p.title) || detectOrigin(desc);
+        if (!process) process = detectProcess(type) || detectProcess(p.title) || detectProcess(desc);
+
+        // Determine roast from tags
+        var roast = detectRoast(p.variants || []);
+        var tl = tags.map(function(x) { return x.toLowerCase().trim(); });
+        if (tl.indexOf("espresso") !== -1 && tl.indexOf("filter") !== -1) roast = "Both";
+        else if (tl.indexOf("filter") !== -1) roast = "Filter";
+
+        return {
+          roaster: s.name,
+          roasterColor: s.color,
+          name: p.title,
+          origin: origin || "\u2014",
+          process: process || "\u2014",
+          roast: roast,
+          price: getPrice(p.variants || [], s.cur),
+          available: isAvail(p.variants || []),
+          url: s.base + "/products/" + p.handle
+        };
+      });
+    }
+
+    /**
+     * Maillard Project — tags contain origin,
+     * process found in title/description
+     */
+    function parseMail(products, s) {
+      return products.filter(isCoffee).map(function(p) {
+        var tags = (p.tags || []);
+        var desc = stripHtml(p.body_html);
+
+        var origin = null;
+        for (var i = 0; i < tags.length; i++) {
+          var f = detectOrigin(tags[i]);
+          if (f) { origin = f; break; }
+        }
+        if (!origin) origin = detectOrigin(p.title) || detectOrigin(desc);
+
+        var process = detectProcess(p.title)
+          || detectProcess(tags.join(" "))
+          || detectProcess(desc);
+
+        return {
+          roaster: s.name,
+          roasterColor: s.color,
+          name: p.title,
+          origin: origin || "\u2014",
+          process: process || "\u2014",
+          roast: detectRoast(p.variants || []),
+          price: getPrice(p.variants || [], s.cur),
+          available: isAvail(p.variants || []),
+          url: s.base + "/products/" + p.handle
+        };
+      });
+    }
+
+    /**
+     * Margaret River Roasting Co — similar structure,
+     * with blend detection via tags
+     */
+    function parseMRRC(products, s) {
+      return products.filter(isCoffee).map(function(p) {
+        var tags = (p.tags || []);
+        var desc = stripHtml(p.body_html);
+
+        var origin = null;
+        for (var i = 0; i < tags.length; i++) {
+          var f = detectOrigin(tags[i]);
+          if (f) { origin = f; break; }
+        }
+        if (!origin) origin = detectOrigin(p.title) || detectOrigin(desc);
+
+        var process = null;
+        for (var i = 0; i < tags.length; i++) {
+          var f = detectProcess(tags[i]);
+          if (f) { process = f; break; }
+        }
+        if (!process) process = detectProcess(p.title) || detectProcess(desc);
+
+        var isBlend = !origin || tags.some(function(t) {
+          return t.toLowerCase().indexOf("blend") !== -1;
+        });
+
+        return {
+          roaster: s.name,
+          roasterColor: s.color,
+          name: p.title,
+          origin: isBlend ? "Blend" : (origin || "\u2014"),
+          process: process || "\u2014",
+          roast: detectRoast(p.variants || []),
+          price: getPrice(p.variants || [], s.cur),
+          available: isAvail(p.variants || []),
+          url: s.base + "/products/" + p.handle
+        };
+      });
+    }
+
+
+    // ════════════════════════════════════════════
+    //  DATA FETCHING
+    // ════════════════════════════════════════════
+    async function fetchJson(url) {
+      // Try direct first (won't work cross-origin, but fast to fail)
+      try {
+        var r = await fetch(url);
+        if (r.ok) return await r.json();
+      } catch (e) {}
+
+      // Fall back to CORS proxy
+      var pu = proxied(url);
+      dlog("Using proxy for: " + url.split("/")[2]);
+      var r2 = await fetch(pu);
+      if (!r2.ok) throw new Error("HTTP " + r2.status);
+      return await r2.json();
+    }
+
+    async function fetchStore(store) {
+      try {
+        var all = [], ids = {};
+
+        for (var i = 0; i < store.urls.length; i++) {
+          try {
+            dlog("[" + store.name + "] Fetching page " + (i + 1) + "...");
+            var data = await fetchJson(store.urls[i]);
+            var prods = data.products || [];
+            dlog("[" + store.name + "] Got " + prods.length + " products");
+            if (!prods.length) break;
+
+            for (var j = 0; j < prods.length; j++) {
+              if (!ids[prods[j].id]) {
+                ids[prods[j].id] = true;
+                all.push(prods[j]);
+              }
+            }
+          } catch (e) {
+            dlog("[" + store.name + "] Page error: " + e.message);
+          }
+        }
+
+        if (!all.length) throw new Error("No products");
+
+        var beans = store.parse(all, store);
+        dlog("[" + store.name + "] " + beans.length + " coffees parsed");
+        return { store: store.name, beans: dedup(beans), error: null };
+
+      } catch (e) {
+        dlog("[" + store.name + "] FAILED: " + e.message);
+        return { store: store.name, beans: [], error: e.message };
+      }
+    }
+
+    async function fetchAll() {
+      dlog("Starting fetch...");
+      var results = await Promise.all(STORES.map(fetchStore));
+      var errors = [];
+      allBeans = [];
+
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].error) errors.push(results[i].store);
+        allBeans = allBeans.concat(results[i].beans);
+      }
+
+      dlog("Done! Total: " + allBeans.length + " coffees");
+
+      document.getElementById("errors").innerHTML = errors.length
+        ? "<div class='en'>Could not reach: " + errors.join(", ") + "</div>"
+        : "";
+      document.getElementById("loading").style.display = "none";
+      renderBoard();
+      updateFooter();
+    }
+
+
+    // ════════════════════════════════════════════
+    //  FILTERING
+    // ════════════════════════════════════════════
+    function getFiltered() {
+      return allBeans.filter(function(b) {
+        if (filters.roaster !== "ALL" && b.roaster !== filters.roaster) return false;
+        if (filters.process !== "ALL" &&
+            (b.process || "").toLowerCase().indexOf(filters.process.toLowerCase()) === -1) return false;
+        if (filters.roast !== "ALL" && b.roast !== "Both" && b.roast !== filters.roast) return false;
+        if (filters.status === "AVAIL" && !b.available) return false;
+        if (filters.status === "SOLD" && b.available) return false;
+        return true;
+      });
+    }
+
+
+    // ════════════════════════════════════════════
+    //  RENDERING — flap-board animation
+    // ════════════════════════════════════════════
+    function mkFlap(text, delay, fs) {
+      var c = document.createElement("span");
+      c.className = "ft";
+      if (fs) c.style.fontSize = fs;
+      var chars = (text || "\u2014").toUpperCase().split("");
+
+      for (var i = 0; i < chars.length; i++) {
+        var s = document.createElement("span");
+        s.className = "fc" + (chars[i] === " " ? " sp" : "");
+        s.textContent = chars[i];
+        (function(el, d) {
+          setTimeout(function() { el.className += " rev"; }, d);
+        })(s, delay + i * 12);
+        c.appendChild(s);
+      }
+      return c;
+    }
+
+    function renderBoard() {
+      var board = document.getElementById("board");
+      var old = board.querySelectorAll(".br, #empty");
+      for (var i = 0; i < old.length; i++) old[i].remove();
+
+      var beans = getFiltered();
+
+      // Empty state
+      if (!beans.length && allBeans.length) {
+        var e = document.createElement("div");
+        e.className = "ls";
+        e.id = "empty";
+        e.innerHTML = "<div class='lt'>NO OFFERINGS MATCH CURRENT FILTERS</div>";
+        board.appendChild(e);
+        updateFooter();
+        return;
+      }
+
+      // Render each bean row
+      for (var i = 0; i < beans.length; i++) {
+        var b = beans[i], d = i * 60;
+
+        // Row link
+        var row = document.createElement("a");
+        row.className = "br rh";
+        row.href = b.url;
+        row.target = "_blank";
+
+        // Roaster (with color bar)
+        var rc = document.createElement("div");
+        rc.className = "rc";
+        var bar = document.createElement("span");
+        bar.className = "rb";
+        bar.style.background = b.roasterColor;
+        rc.appendChild(bar);
+        rc.appendChild(mkFlap(b.roaster, d, "11px"));
+        row.appendChild(rc);
+
+        // Coffee name
+        var nc = document.createElement("div");
+        nc.appendChild(mkFlap(b.name, d + 30, "12px"));
+        row.appendChild(nc);
+
+        // Origin
+        var oc = document.createElement("div");
+        oc.appendChild(mkFlap(b.origin, d + 60, "11px"));
+        row.appendChild(oc);
+
+        // Process badge
+        var pc = document.createElement("div");
+        var badge = document.createElement("span");
+        badge.className = "pb " + pcls(b.process);
+        badge.textContent = (b.process || "\u2014").toUpperCase();
+        badge.style.opacity = "0";
+        badge.style.transition = "opacity .3s";
+        (function(el, t) {
+          setTimeout(function() { el.style.opacity = "1"; }, t);
+        })(badge, d + 90);
+        pc.appendChild(badge);
+        row.appendChild(pc);
+
+        // Roast label
+        var roc = document.createElement("div");
+        var rs = document.createElement("span");
+        rs.className = "rl";
+        if (b.roast === "Both") {
+          rs.className += " rb2";
+          rs.textContent = "E / F";
+        } else if (b.roast === "Filter") {
+          rs.className += " rf";
+          rs.textContent = "FLT";
+        } else {
+          rs.className += " re";
+          rs.textContent = "ESP";
+        }
+        rs.style.opacity = "0";
+        rs.style.transition = "opacity .3s";
+        (function(el, t) {
+          setTimeout(function() { el.style.opacity = "1"; }, t);
+        })(rs, d + 110);
+        roc.appendChild(rs);
+        row.appendChild(roc);
+
+        // Price
+        var prc = document.createElement("div");
+        prc.appendChild(mkFlap(b.price, d + 130, "12px"));
+        row.appendChild(prc);
+
+        // Status badge
+        var sc = document.createElement("div");
+        var sb2 = document.createElement("span");
+        sb2.className = "sb " + (b.available ? "si" : "so");
+        sb2.textContent = b.available ? "\u25CF AVAIL" : "\u25CF SOLD";
+        sb2.style.opacity = "0";
+        sb2.style.transition = "opacity .3s";
+        (function(el, t) {
+          setTimeout(function() { el.style.opacity = "1"; }, t);
+        })(sb2, d + 160);
+        sc.appendChild(sb2);
+        row.appendChild(sc);
+
+        // Add row to board with staggered reveal
+        board.appendChild(row);
+        (function(el, t) {
+          setTimeout(function() { el.className = "br rv"; }, t);
+        })(row, d + 10);
+      }
+
+      updateFooter();
+    }
+
+
+    // ════════════════════════════════════════════
+    //  FOOTER & DATE
+    // ════════════════════════════════════════════
+    function updateFooter() {
+      document.getElementById("count").textContent =
+        getFiltered().length + " OFFERINGS DISPLAYED";
+      var n = new Date();
+      document.getElementById("refresh-time").textContent = "LAST REFRESH: " +
+        n.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+    }
+
+    function updateDate() {
+      var n = new Date();
+      document.getElementById("date").textContent =
+        n.toLocaleDateString("en-GB", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        }).toUpperCase();
+    }
+
+
+    // ════════════════════════════════════════════
+    //  FILTER BUTTON HANDLERS
+    // ════════════════════════════════════════════
+    var btns = document.querySelectorAll(".fb");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener("click", function() {
+        var g = this.dataset.filter;
+        var v = this.dataset.value;
+
+        // Toggle: clicking active filter resets to ALL
+        filters[g] = (filters[g] === v && v !== "ALL") ? "ALL" : v;
+
+        // Update button states
+        var all = document.querySelectorAll('.fb[data-filter="' + g + '"]');
+        for (var j = 0; j < all.length; j++) {
+          if (all[j].dataset.value === filters[g]) {
+            all[j].classList.add("active");
+          } else {
+            all[j].classList.remove("active");
+          }
+        }
+
+        renderBoard();
+      });
+    }
+
+
+    // ════════════════════════════════════════════
+    //  INIT
+    // ════════════════════════════════════════════
+    updateDate();
+    fetchAll();
+    setInterval(fetchAll, 30 * 60 * 1000);  // Refresh every 30 minutes
+  </script>
 </body>
 </html>
