@@ -189,8 +189,8 @@ const STORES = [
     baseUrl: "https://alchemist.global",
     // Fetch both espresso and filter bean collections
     apiUrls: [
-      "https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250",
-      "https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250"
+      "/proxy?url=" + encodeURIComponent("https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250"),
+      "/proxy?url=" + encodeURIComponent("https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250")
     ],
     parse: parseAlchemist
   },
@@ -198,7 +198,7 @@ const STORES = [
     name: "Maillard Project", color: "#E8475F", currency: "A$",
     baseUrl: "https://themaillardproject.com.au",
     apiUrls: [
-      "https://themaillardproject.com.au/products.json?limit=250&page=1"
+      "/proxy?url=" + encodeURIComponent("https://themaillardproject.com.au/products.json?limit=250&page=1")
     ],
     parse: parseMaillard
   },
@@ -207,8 +207,8 @@ const STORES = [
     baseUrl: "https://www.proudmarycoffee.com.au",
     // Use the /collections/coffee endpoint — exactly what their coffee page shows
     apiUrls: [
-      "https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250",
-      "https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2"
+      "/proxy?url=" + encodeURIComponent("https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250"),
+      "/proxy?url=" + encodeURIComponent("https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2")
     ],
     parse: parseProudMary
   },
@@ -216,7 +216,7 @@ const STORES = [
     name: "MR Roasting Co", color: "#9B8EC4", currency: "A$",
     baseUrl: "https://margaretriverroasting.com.au",
     apiUrls: [
-      "https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250"
+      "/proxy?url=" + encodeURIComponent("https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250")
     ],
     parse: parseMRRC
   },
