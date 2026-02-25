@@ -4,625 +4,198 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Coffee Rabbit Hole — Live Offerings</title>
+<title>My Coffee Rabbit Hole</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alice&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    min-height: 100vh; background: #0A0A0A; color: #E8DCC8;
-    font-family: 'JetBrains Mono', monospace;
-    -webkit-font-smoothing: antialiased;
-  }
-  .noise {
-    position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-  .scanlines {
-    position: fixed; inset: 0; z-index: 2; pointer-events: none;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px);
-  }
-  #app { position: relative; z-index: 3; max-width: 1240px; margin: 0 auto; padding: 24px 20px; }
-  header {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #1A1A1A;
-  }
-  .title-row { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
-  .title-row .logo { font-size: 26px; filter: drop-shadow(0 0 8px rgba(245,166,35,0.3)); }
-  .title-row h1 {
-    font-family: 'Alice', serif;
-    font-size: 30px; font-weight: 400; letter-spacing: 0.04em;
-    color: #E8DCC8;
-    text-shadow: 0 0 20px rgba(245,166,35,0.15), 0 2px 4px rgba(0,0,0,0.5);
-  }
-  .title-row h1 .wonderland-accent { color: #F5A623; font-style: italic; }
-  .subtitle { font-size: 11px; color: #555; letter-spacing: 0.15em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
-  .clock { font-size: 24px; font-weight: 300; letter-spacing: 0.15em; color: #F5A623; margin-bottom: 2px; text-align: right; }
-  .date { font-size: 10px; color: #555; letter-spacing: 0.15em; text-align: right; }
-  .roaster-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1A1A1A; }
-  .roaster-links-label { font-size: 10px; color: #444; letter-spacing: 0.15em; margin-right: 4px; }
-  .roaster-links a { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-decoration: none; text-transform: uppercase; transition: all 0.2s ease; border: 1px solid transparent; }
-  .roaster-links a .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .roaster-links a .arrow { opacity: 0.5; font-size: 9px; }
-  .roaster-links a:hover { border-color: currentColor; }
-  .filter-group { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
-  .filter-label { font-size: 10px; color: #444; letter-spacing: 0.15em; min-width: 62px; text-transform: uppercase; }
-  .filter-btn { padding: 5px 12px; border-radius: 4px; border: 1px solid #2A2A2A; background: transparent; color: #555; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; cursor: pointer; font-family: inherit; text-transform: uppercase; transition: all 0.2s ease; }
-  .filter-btn:hover { border-color: #444; color: #888; }
-  .filter-btn.active { border-color: #E8DCC8; color: #E8DCC8; background: rgba(232,220,200,0.06); }
-  .filter-btn.active[data-color] { border-color: var(--btn-color); color: var(--btn-color); background: rgba(255,255,255,0.04); }
-  .board-header { display: grid; grid-template-columns: 130px 1fr 100px 140px 70px 70px 70px; gap: 12px; padding: 8px 16px; border-bottom: 2px solid #222; margin-bottom: 2px; }
-  .board-header span { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; color: #444; text-transform: uppercase; }
-  #board { background: rgba(255,255,255,0.01); border-radius: 4px; border: 1px solid #151515; min-height: 200px; }
-  .board-row { display: grid; grid-template-columns: 130px 1fr 100px 140px 70px 70px 70px; gap: 12px; align-items: center; padding: 9px 16px; border-bottom: 1px solid #1A1A1A; text-decoration: none; color: inherit; transition: background 0.15s ease; cursor: pointer; }
-  .board-row:hover { background: rgba(255,255,255,0.025); }
-  .board-row:nth-child(even) { background: rgba(255,255,255,0.008); }
-  .board-row:nth-child(even):hover { background: rgba(255,255,255,0.03); }
-  .board-row.row-hidden { opacity: 0; transform: translateY(4px); }
-  .board-row.row-visible { opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.3s ease; }
-  .roaster-cell { display: flex; align-items: center; gap: 8px; }
-  .roaster-bar { width: 3px; height: 20px; border-radius: 2px; flex-shrink: 0; }
-  .flap-text { display: inline-flex; flex-wrap: nowrap; overflow: hidden; }
-  .flap-char { display: inline-block; background: #0D0D0D; color: #0D0D0D; padding: 1px 1.5px; margin: 0 0.3px; border-radius: 2px; font-family: inherit; font-size: inherit; line-height: 1.4; transition: background 0.05s ease, color 0.05s ease; }
-  .flap-char.revealed { background: #1A1A1A; color: #E8DCC8; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.05), inset 0 1px 0 rgba(0,0,0,0.4); }
-  .flap-char.space { min-width: 0.35em; background: transparent !important; box-shadow: none !important; }
-  .process-badge { display: inline-block; padding: 3px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
-  .process-natural { background: #5C2D0E; color: #FFB347; }
-  .process-washed { background: #0E3B5C; color: #47B3FF; }
-  .process-anaerobic { background: #3B0E5C; color: #C847FF; }
-  .process-honey { background: #5C4A0E; color: #FFD747; }
-  .process-other { background: #2A2A2A; color: #666; }
-  .roast-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-  .roast-esp { color: #F5A623; }
-  .roast-flt { color: #47B3FF; }
-  .roast-both { color: #E8DCC8; }
-  .status-badge { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
-  .status-in-stock { background: #0A3A1A; color: #34D399; border: 1px solid #166534; }
-  .status-sold-out { background: #3A0A0A; color: #EF4444; border: 1px solid #7F1D1D; }
-  .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 16px; }
-  .loading-text { font-size: 12px; letter-spacing: 0.2em; color: #555; text-transform: uppercase; }
-  .loading-dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #F5A623; margin: 0 4px; animation: pulse 1.4s ease-in-out infinite; }
-  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes pulse { 0%, 80%, 100% { opacity: 0.15; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
-  .error-notice { padding: 8px 16px; margin-bottom: 12px; border: 1px solid #7F1D1D; border-radius: 4px; background: rgba(127,29,29,0.1); font-size: 10px; color: #EF4444; letter-spacing: 0.05em; }
-  .debug-log { padding: 8px 16px; margin-bottom: 12px; border: 1px solid #333; border-radius: 4px; background: rgba(255,255,255,0.02); font-size: 9px; color: #666; letter-spacing: 0.03em; max-height: 120px; overflow-y: auto; display: none; }
-  .debug-log.visible { display: block; }
-  footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #1A1A1A; flex-wrap: wrap; gap: 8px; }
-  footer span { font-size: 10px; color: #333; letter-spacing: 0.12em; }
-  @media (max-width: 900px) {
-    .board-header, .board-row { grid-template-columns: 100px 1fr 80px 110px 50px 55px 60px; gap: 6px; padding: 8px 10px; }
-    .title-row h1 { font-size: 22px; } .clock { font-size: 18px; }
-  }
-  @media (max-width: 700px) {
-    #app { padding: 16px 10px; }
-    .board-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .board-header, .board-row { min-width: 720px; }
-    header { flex-direction: column; gap: 12px; }
-    .header-right { display: flex; gap: 12px; align-items: baseline; }
-    .clock, .date { text-align: left; }
-    footer { flex-direction: column; align-items: flex-start; }
-  }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:#0A0A0A;color:#E8DCC8;font-family:'JetBrains Mono',monospace;-webkit-font-smoothing:antialiased}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.scanlines{position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px)}
+#app{position:relative;z-index:3;max-width:1240px;margin:0 auto;padding:24px 20px}
+header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:2px solid #1A1A1A}
+.title-row{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.title-row .logo{font-size:26px;filter:drop-shadow(0 0 8px rgba(245,166,35,.3))}
+.title-row h1{font-family:'Alice',serif;font-size:30px;font-weight:400;letter-spacing:.04em;color:#E8DCC8;text-shadow:0 0 20px rgba(245,166,35,.15),0 2px 4px rgba(0,0,0,.5)}
+.title-row h1 .wa{color:#F5A623;font-style:italic}
+.subtitle{font-size:11px;color:#555;letter-spacing:.15em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.clock{font-size:24px;font-weight:300;letter-spacing:.15em;color:#F5A623;margin-bottom:2px;text-align:right}
+.date{font-size:10px;color:#555;letter-spacing:.15em;text-align:right}
+.roaster-links{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #1A1A1A}
+.roaster-links-label{font-size:10px;color:#444;letter-spacing:.15em;margin-right:4px}
+.roaster-links a{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.06em;text-decoration:none;text-transform:uppercase;transition:all .2s ease;border:1px solid transparent}
+.roaster-links a .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.roaster-links a .arrow{opacity:.5;font-size:9px}
+.roaster-links a:hover{border-color:currentColor}
+.fg{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.fl{font-size:10px;color:#444;letter-spacing:.15em;min-width:62px;text-transform:uppercase}
+.fb{padding:5px 12px;border-radius:4px;border:1px solid #2A2A2A;background:transparent;color:#555;font-size:11px;font-weight:600;letter-spacing:.06em;cursor:pointer;font-family:inherit;text-transform:uppercase;transition:all .2s ease}
+.fb:hover{border-color:#444;color:#888}
+.fb.active{border-color:#E8DCC8;color:#E8DCC8;background:rgba(232,220,200,.06)}
+.fb.active[data-color]{border-color:var(--c);color:var(--c);background:rgba(255,255,255,.04)}
+.bh{display:grid;grid-template-columns:130px 1fr 100px 140px 70px 70px 70px;gap:12px;padding:8px 16px;border-bottom:2px solid #222;margin-bottom:2px}
+.bh span{font-size:9px;font-weight:700;letter-spacing:.2em;color:#444;text-transform:uppercase}
+#board{background:rgba(255,255,255,.01);border-radius:4px;border:1px solid #151515;min-height:200px}
+.br{display:grid;grid-template-columns:130px 1fr 100px 140px 70px 70px 70px;gap:12px;align-items:center;padding:9px 16px;border-bottom:1px solid #1A1A1A;text-decoration:none;color:inherit;transition:background .15s ease;cursor:pointer}
+.br:hover{background:rgba(255,255,255,.025)}
+.br:nth-child(even){background:rgba(255,255,255,.008)}
+.br:nth-child(even):hover{background:rgba(255,255,255,.03)}
+.br.rh{opacity:0;transform:translateY(4px)}
+.br.rv{opacity:1;transform:translateY(0);transition:opacity .3s ease,transform .3s ease}
+.rc{display:flex;align-items:center;gap:8px}
+.rb{width:3px;height:20px;border-radius:2px;flex-shrink:0}
+.ft{display:inline-flex;flex-wrap:nowrap;overflow:hidden}
+.fc{display:inline-block;background:#0D0D0D;color:#0D0D0D;padding:1px 1.5px;margin:0 .3px;border-radius:2px;font-family:inherit;font-size:inherit;line-height:1.4;transition:background .05s ease,color .05s ease}
+.fc.rev{background:#1A1A1A;color:#E8DCC8;box-shadow:inset 0 -1px 0 rgba(255,255,255,.05),inset 0 1px 0 rgba(0,0,0,.4)}
+.fc.sp{min-width:.35em;background:transparent!important;box-shadow:none!important}
+.pb{display:inline-block;padding:3px 7px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.pn{background:#5C2D0E;color:#FFB347}.pw{background:#0E3B5C;color:#47B3FF}.pa{background:#3B0E5C;color:#C847FF}.ph{background:#5C4A0E;color:#FFD747}.po{background:#2A2A2A;color:#666}
+.rl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.re{color:#F5A623}.rf{color:#47B3FF}.rb2{color:#E8DCC8}
+.sb{display:inline-block;padding:3px 8px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.si{background:#0A3A1A;color:#34D399;border:1px solid #166534}
+.so{background:#3A0A0A;color:#EF4444;border:1px solid #7F1D1D}
+.ls{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px}
+.lt{font-size:12px;letter-spacing:.2em;color:#555;text-transform:uppercase}
+.ld span{display:inline-block;width:8px;height:8px;border-radius:50%;background:#F5A623;margin:0 4px;animation:pulse 1.4s ease-in-out infinite}
+.ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.15;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.en{padding:8px 16px;margin-bottom:12px;border:1px solid #7F1D1D;border-radius:4px;background:rgba(127,29,29,.1);font-size:10px;color:#EF4444;letter-spacing:.05em}
+#dbg{padding:8px 16px;margin-bottom:12px;border:1px solid #333;border-radius:4px;background:rgba(255,255,255,.02);font-size:9px;color:#666;letter-spacing:.03em;max-height:120px;overflow-y:auto;display:none}
+#dbg.vis{display:block}
+footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid #1A1A1A;flex-wrap:wrap;gap:8px}
+footer span{font-size:10px;color:#333;letter-spacing:.12em}
+@media(max-width:900px){.bh,.br{grid-template-columns:100px 1fr 80px 110px 50px 55px 60px;gap:6px;padding:8px 10px}.title-row h1{font-size:22px}.clock{font-size:18px}}
+@media(max-width:700px){#app{padding:16px 10px}.bs{overflow-x:auto;-webkit-overflow-scrolling:touch}.bh,.br{min-width:720px}header{flex-direction:column;gap:12px}.hr{display:flex;gap:12px;align-items:baseline}.clock,.date{text-align:left}footer{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
 <div class="noise"></div>
 <div class="scanlines"></div>
 <div id="app">
-  <header>
-    <div class="header-left">
-      <div class="title-row">
-        <span class="logo">🐇</span>
-        <h1>My Coffee <span class="wonderland-accent">Rabbit Hole</span></h1>
-      </div>
-      <p class="subtitle">Live offerings from my favourite roasters</p>
-    </div>
-    <div class="header-right">
-      <div class="clock" id="clock"></div>
-      <div class="date" id="date"></div>
-    </div>
-  </header>
-  <nav class="roaster-links">
-    <span class="roaster-links-label">ROASTERS</span>
-    <a href="https://alchemist.global" target="_blank" rel="noopener" style="color:#4ECDC4"><span class="dot" style="background:#4ECDC4"></span>ALCHEMIST<span class="arrow">↗</span></a>
-    <a href="https://themaillardproject.com.au" target="_blank" rel="noopener" style="color:#E8475F"><span class="dot" style="background:#E8475F"></span>MAILLARD PROJECT<span class="arrow">↗</span></a>
-    <a href="https://www.proudmarycoffee.com.au" target="_blank" rel="noopener" style="color:#F5A623"><span class="dot" style="background:#F5A623"></span>PROUD MARY<span class="arrow">↗</span></a>
-    <a href="https://margaretriverroasting.com.au" target="_blank" rel="noopener" style="color:#9B8EC4"><span class="dot" style="background:#9B8EC4"></span>MR ROASTING CO<span class="arrow">↗</span></a>
-  </nav>
-  <div id="filters">
-    <div class="filter-group">
-      <span class="filter-label">ROASTER</span>
-      <button class="filter-btn active" data-filter="roaster" data-value="ALL">ALL</button>
-      <button class="filter-btn" data-filter="roaster" data-value="Alchemist" style="--btn-color:#4ECDC4" data-color>ALCHEMIST</button>
-      <button class="filter-btn" data-filter="roaster" data-value="Maillard Project" style="--btn-color:#E8475F" data-color>MAILLARD PROJECT</button>
-      <button class="filter-btn" data-filter="roaster" data-value="Proud Mary" style="--btn-color:#F5A623" data-color>PROUD MARY</button>
-      <button class="filter-btn" data-filter="roaster" data-value="MR Roasting Co" style="--btn-color:#9B8EC4" data-color>MR ROASTING CO</button>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">PROCESS</span>
-      <button class="filter-btn active" data-filter="process" data-value="ALL">ALL</button>
-      <button class="filter-btn" data-filter="process" data-value="Washed" style="--btn-color:#47B3FF" data-color>WASHED</button>
-      <button class="filter-btn" data-filter="process" data-value="Natural" style="--btn-color:#FFB347" data-color>NATURAL</button>
-      <button class="filter-btn" data-filter="process" data-value="Anaerobic" style="--btn-color:#C847FF" data-color>ANAEROBIC</button>
-      <button class="filter-btn" data-filter="process" data-value="Honey" style="--btn-color:#FFD747" data-color>HONEY</button>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">ROAST</span>
-      <button class="filter-btn active" data-filter="roast" data-value="ALL">ALL</button>
-      <button class="filter-btn" data-filter="roast" data-value="Espresso" style="--btn-color:#F5A623" data-color>ESPRESSO</button>
-      <button class="filter-btn" data-filter="roast" data-value="Filter" style="--btn-color:#47B3FF" data-color>FILTER</button>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">STATUS</span>
-      <button class="filter-btn" data-filter="status" data-value="ALL">ALL</button>
-      <button class="filter-btn active" data-filter="status" data-value="AVAIL" style="--btn-color:#34D399" data-color>AVAILABLE</button>
-      <button class="filter-btn" data-filter="status" data-value="SOLD" style="--btn-color:#EF4444" data-color>SOLD OUT</button>
-    </div>
-  </div>
-  <div id="errors"></div>
-  <div id="debug" class="debug-log"></div>
-  <div class="board-scroll">
-    <div class="board-header">
-      <span>ROASTER</span><span>COFFEE</span><span>ORIGIN</span>
-      <span>PROCESS</span><span>ROAST</span><span>PRICE</span><span>STATUS</span>
-    </div>
-    <div id="board">
-      <div class="loading-state" id="loading">
-        <div class="loading-dots"><span></span><span></span><span></span></div>
-        <div class="loading-text">FETCHING LIVE OFFERINGS...</div>
-      </div>
-    </div>
-  </div>
-  <footer>
-    <span id="count"></span>
-    <span id="refresh-time"></span>
-    <span style="font-family:'Alice',serif; font-size:11px; color:#444;">curiouser and curiouser…</span>
-  </footer>
+<header>
+<div>
+<div class="title-row"><span class="logo">&#x1F407;</span><h1>My Coffee <span class="wa">Rabbit Hole</span></h1></div>
+<p class="subtitle">Live offerings from my favourite roasters</p>
+</div>
+<div class="hr"><div class="clock" id="clock"></div><div class="date" id="date"></div></div>
+</header>
+<nav class="roaster-links">
+<span class="roaster-links-label">ROASTERS</span>
+<a href="https://alchemist.global" target="_blank" style="color:#4ECDC4"><span class="dot" style="background:#4ECDC4"></span>ALCHEMIST<span class="arrow">&#x2197;</span></a>
+<a href="https://themaillardproject.com.au" target="_blank" style="color:#E8475F"><span class="dot" style="background:#E8475F"></span>MAILLARD PROJECT<span class="arrow">&#x2197;</span></a>
+<a href="https://www.proudmarycoffee.com.au" target="_blank" style="color:#F5A623"><span class="dot" style="background:#F5A623"></span>PROUD MARY<span class="arrow">&#x2197;</span></a>
+<a href="https://margaretriverroasting.com.au" target="_blank" style="color:#9B8EC4"><span class="dot" style="background:#9B8EC4"></span>MR ROASTING CO<span class="arrow">&#x2197;</span></a>
+</nav>
+<div id="filters">
+<div class="fg"><span class="fl">ROASTER</span>
+<button class="fb active" data-filter="roaster" data-value="ALL">ALL</button>
+<button class="fb" data-filter="roaster" data-value="Alchemist" style="--c:#4ECDC4" data-color>ALCHEMIST</button>
+<button class="fb" data-filter="roaster" data-value="Maillard Project" style="--c:#E8475F" data-color>MAILLARD PROJECT</button>
+<button class="fb" data-filter="roaster" data-value="Proud Mary" style="--c:#F5A623" data-color>PROUD MARY</button>
+<button class="fb" data-filter="roaster" data-value="MR Roasting Co" style="--c:#9B8EC4" data-color>MR ROASTING CO</button>
+</div>
+<div class="fg"><span class="fl">PROCESS</span>
+<button class="fb active" data-filter="process" data-value="ALL">ALL</button>
+<button class="fb" data-filter="process" data-value="Washed" style="--c:#47B3FF" data-color>WASHED</button>
+<button class="fb" data-filter="process" data-value="Natural" style="--c:#FFB347" data-color>NATURAL</button>
+<button class="fb" data-filter="process" data-value="Anaerobic" style="--c:#C847FF" data-color>ANAEROBIC</button>
+<button class="fb" data-filter="process" data-value="Honey" style="--c:#FFD747" data-color>HONEY</button>
+</div>
+<div class="fg"><span class="fl">ROAST</span>
+<button class="fb active" data-filter="roast" data-value="ALL">ALL</button>
+<button class="fb" data-filter="roast" data-value="Espresso" style="--c:#F5A623" data-color>ESPRESSO</button>
+<button class="fb" data-filter="roast" data-value="Filter" style="--c:#47B3FF" data-color>FILTER</button>
+</div>
+<div class="fg"><span class="fl">STATUS</span>
+<button class="fb" data-filter="status" data-value="ALL">ALL</button>
+<button class="fb active" data-filter="status" data-value="AVAIL" style="--c:#34D399" data-color>AVAILABLE</button>
+<button class="fb" data-filter="status" data-value="SOLD" style="--c:#EF4444" data-color>SOLD OUT</button>
+</div>
+</div>
+<div id="errors"></div>
+<div id="dbg"></div>
+<div class="bs">
+<div class="bh"><span>ROASTER</span><span>COFFEE</span><span>ORIGIN</span><span>PROCESS</span><span>ROAST</span><span>PRICE</span><span>STATUS</span></div>
+<div id="board"><div class="ls" id="loading"><div class="ld"><span></span><span></span><span></span></div><div class="lt">FETCHING LIVE OFFERINGS...</div></div></div>
+</div>
+<footer><span id="count"></span><span id="refresh-time"></span><span style="font-family:'Alice',serif;font-size:11px;color:#444;">curiouser and curiouser&#x2026;</span></footer>
 </div>
 <script>
-// ============================================================
-// CORS PROXY — routes requests through a public proxy service
-// to bypass Shopify CORS restrictions on browser requests.
-// ============================================================
-const CORS_PROXY = "https://corsproxy.io/?";
+// CORS proxy with correct URL format and fallbacks
+var PROXIES=["https://corsproxy.io/?url=","https://api.allorigins.win/raw?url="];
+var proxyIdx=0;
 
-function proxiedUrl(url) {
-return CORS_PROXY + encodeURIComponent(url);
-}
+function proxied(u){return PROXIES[proxyIdx]+encodeURIComponent(u)}
 
-// ============================================================
-// DEBUG LOG — visible on page to help diagnose issues
-// ============================================================
-function debugLog(msg) {
-console.log(msg);
-const el = document.getElementById(“debug”);
-el.classList.add(“visible”);
-el.innerHTML += msg + “<br>”;
-}
+function dlog(m){console.log(m);var e=document.getElementById(“dbg”);e.className=“vis”;e.innerHTML+=m+”<br>”}
 
-// ============================================================
-// STORE CONFIGS — ordered: Alchemist, Maillard, Proud Mary, MRRC
-// ============================================================
-const STORES = [
-{
-name: “Alchemist”, color: “#4ECDC4”, currency: “S$”,
-baseUrl: “https://alchemist.global”,
-sourceUrls: [
-“https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250”,
-“https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250”
-],
-parse: parseAlchemist
-},
-{
-name: “Maillard Project”, color: “#E8475F”, currency: “A$”,
-baseUrl: “https://themaillardproject.com.au”,
-sourceUrls: [
-“https://themaillardproject.com.au/products.json?limit=250&page=1”
-],
-parse: parseMaillard
-},
-{
-name: “Proud Mary”, color: “#F5A623”, currency: “A$”,
-baseUrl: “https://www.proudmarycoffee.com.au”,
-sourceUrls: [
-“https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250”,
-“https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2”
-],
-parse: parseProudMary
-},
-{
-name: “MR Roasting Co”, color: “#9B8EC4”, currency: “A$”,
-baseUrl: “https://margaretriverroasting.com.au”,
-sourceUrls: [
-“https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250”
-],
-parse: parseMRRC
-},
+var STORES=[
+{name:“Alchemist”,color:”#4ECDC4”,cur:“S$”,base:“https://alchemist.global”,urls:[“https://alchemist.global/collections/coffee-beans-espresso/products.json?limit=250”,“https://alchemist.global/collections/coffee-beans-filter/products.json?limit=250”],parse:parseAlch},
+{name:“Maillard Project”,color:”#E8475F”,cur:“A$”,base:“https://themaillardproject.com.au”,urls:[“https://themaillardproject.com.au/products.json?limit=250&page=1”],parse:parseMail},
+{name:“Proud Mary”,color:”#F5A623”,cur:“A$”,base:“https://www.proudmarycoffee.com.au”,urls:[“https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250”,“https://www.proudmarycoffee.com.au/collections/coffee/products.json?limit=250&page=2”],parse:parsePM},
+{name:“MR Roasting Co”,color:”#9B8EC4”,cur:“A$”,base:“https://margaretriverroasting.com.au”,urls:[“https://margaretriverroasting.com.au/collections/all-coffee/products.json?limit=250”],parse:parseMRRC}
 ];
 
-let allBeans = [];
-let filters = { roaster: “ALL”, process: “ALL”, roast: “ALL”, status: “AVAIL” };
+var allBeans=[],filters={roaster:“ALL”,process:“ALL”,roast:“ALL”,status:“AVAIL”};
 
-// ============================================================
-// DETECTION HELPERS
-// ============================================================
-const COUNTRIES = [
-“Ethiopia”,“Colombia”,“Kenya”,“Guatemala”,“Mexico”,“Nicaragua”,“Honduras”,
-“Costa Rica”,“Panama”,“El Salvador”,“Brazil”,“Peru”,“Thailand”,“Uganda”,
-“Rwanda”,“Burundi”,“Indonesia”,“India”,“Bolivia”,“Ecuador”,“Tanzania”,
-“Papua New Guinea”,“Myanmar”,“Yemen”,“China”,“Japan”,“Australia”,“Laos”,
-“Vietnam”,“Congo”,“Zambia”,“Malawi”,“Zimbabwe”,“Hawaii”,
-];
-const DEMONYMS = {
-“ethiopian”:“Ethiopia”,“colombian”:“Colombia”,“kenyan”:“Kenya”,
-“guatemalan”:“Guatemala”,“mexican”:“Mexico”,“nicaraguan”:“Nicaragua”,
-“honduran”:“Honduras”,“costa rican”:“Costa Rica”,“panamanian”:“Panama”,
-“salvadoran”:“El Salvador”,“salvadorean”:“El Salvador”,“salvadorian”:“El Salvador”,
-“brazilian”:“Brazil”,“peruvian”:“Peru”,“thai”:“Thailand”,
-“ugandan”:“Uganda”,“rwandan”:“Rwanda”,“burundian”:“Burundi”,
-“indonesian”:“Indonesia”,“indian”:“India”,“bolivian”:“Bolivia”,
-“ecuadorian”:“Ecuador”,“tanzanian”:“Tanzania”,“yemeni”:“Yemen”,
-“vietnamese”:“Vietnam”,“congolese”:“Congo”,
-};
+var COUNTRIES=[“Ethiopia”,“Colombia”,“Kenya”,“Guatemala”,“Mexico”,“Nicaragua”,“Honduras”,“Costa Rica”,“Panama”,“El Salvador”,“Brazil”,“Peru”,“Thailand”,“Uganda”,“Rwanda”,“Burundi”,“Indonesia”,“India”,“Bolivia”,“Ecuador”,“Tanzania”,“Papua New Guinea”,“Myanmar”,“Yemen”,“China”,“Japan”,“Australia”,“Laos”,“Vietnam”,“Congo”,“Zambia”,“Malawi”,“Zimbabwe”,“Hawaii”];
+var DEMONYMS={“ethiopian”:“Ethiopia”,“colombian”:“Colombia”,“kenyan”:“Kenya”,“guatemalan”:“Guatemala”,“mexican”:“Mexico”,“nicaraguan”:“Nicaragua”,“honduran”:“Honduras”,“costa rican”:“Costa Rica”,“panamanian”:“Panama”,“salvadoran”:“El Salvador”,“salvadorean”:“El Salvador”,“brazilian”:“Brazil”,“peruvian”:“Peru”,“thai”:“Thailand”,“ugandan”:“Uganda”,“rwandan”:“Rwanda”,“indonesian”:“Indonesia”,“bolivian”:“Bolivia”,“ecuadorian”:“Ecuador”,“tanzanian”:“Tanzania”,“yemeni”:“Yemen”,“vietnamese”:“Vietnam”};
 
-function detectOrigin(text) {
-if (!text) return null;
-const t = text.toLowerCase();
-for (const c of COUNTRIES) { if (t.includes(c.toLowerCase())) return c; }
-for (const [dem, country] of Object.entries(DEMONYMS)) { if (t.includes(dem)) return country; }
-return null;
-}
+function detectOrigin(t){if(!t)return null;var l=t.toLowerCase();for(var i=0;i<COUNTRIES.length;i++){if(l.indexOf(COUNTRIES[i].toLowerCase())!==-1)return COUNTRIES[i]}for(var d in DEMONYMS){if(l.indexOf(d)!==-1)return DEMONYMS[d]}return null}
 
-function detectProcess(text) {
-if (!text) return null;
-const t = text.toLowerCase();
-if (t.includes(“anaerobic natural”)) return “Anaerobic Natural”;
-if (t.includes(“anaerobic washed”)) return “Anaerobic Washed”;
-if (t.includes(“anaerobic honey”)) return “Anaerobic Honey”;
-if (t.includes(“anaerobic”)) return “Anaerobic”;
-if (t.includes(“carbonic maceration”)) return “Anaerobic”;
-if (t.includes(“black honey”)) return “Black Honey”;
-if (t.includes(“red honey”)) return “Red Honey”;
-if (t.includes(“yellow honey”)) return “Yellow Honey”;
-if (t.includes(“honey process”)) return “Honey”;
-if (/\bhoney\b/.test(t) && !t.includes(“honeyed”)) return “Honey”;
-if (t.includes(“supernatural”)) return “Natural”;
-if (t.includes(“natural process”)) return “Natural”;
-if (/\bnatural\b/.test(t)) return “Natural”;
-if (t.includes(“washed process”) || t.includes(“fully washed”)) return “Washed”;
-if (/\bwashed\b/.test(t)) return “Washed”;
-if (t.includes(“dried”)) return “Natural”;
-if (t.includes(“wine process”)) return “Natural”;
-return null;
-}
+function detectProcess(t){if(!t)return null;var l=t.toLowerCase();if(l.indexOf(“anaerobic natural”)!==-1)return”Anaerobic Natural”;if(l.indexOf(“anaerobic washed”)!==-1)return”Anaerobic Washed”;if(l.indexOf(“anaerobic”)!==-1)return”Anaerobic”;if(l.indexOf(“carbonic”)!==-1)return”Anaerobic”;if(l.indexOf(“black honey”)!==-1)return”Black Honey”;if(l.indexOf(“red honey”)!==-1)return”Red Honey”;if(l.indexOf(“yellow honey”)!==-1)return”Yellow Honey”;if(l.indexOf(“honey”)!==-1&&l.indexOf(“honeyed”)===-1)return”Honey”;if(l.indexOf(“natural”)!==-1)return”Natural”;if(l.indexOf(“washed”)!==-1)return”Washed”;if(l.indexOf(“dried”)!==-1)return”Natural”;return null}
 
-function getProcessClass(p) {
-if (!p || p === “\u2014”) return “process-other”;
-const l = p.toLowerCase();
-if (l.includes(“anaerobic”) || l.includes(“carbonic”)) return “process-anaerobic”;
-if (l.includes(“natural”)) return “process-natural”;
-if (l.includes(“washed”)) return “process-washed”;
-if (l.includes(“honey”)) return “process-honey”;
-return “process-other”;
-}
+function pcls(p){if(!p||p===”\u2014”)return”po”;var l=p.toLowerCase();if(l.indexOf(“anaerobic”)!==-1)return”pa”;if(l.indexOf(“natural”)!==-1)return”pn”;if(l.indexOf(“washed”)!==-1)return”pw”;if(l.indexOf(“honey”)!==-1)return”ph”;return”po”}
 
-function detectRoast(variants) {
-let esp = false, flt = false;
-for (const v of variants) {
-const t = [v.title, v.option1, v.option2, v.option3].filter(Boolean).join(” “).toLowerCase();
-if (t.includes(“espresso”) || t === “esp”) esp = true;
-if (t.includes(“filter”) || t === “flt” || t.includes(“pour over”)) flt = true;
-}
-if (esp && flt) return “Both”;
-if (flt) return “Filter”;
-if (esp) return “Espresso”;
-return “Espresso”;
-}
+function detectRoast(v){var e=false,f=false;for(var i=0;i<v.length;i++){var t=[v[i].title,v[i].option1,v[i].option2,v[i].option3].filter(Boolean).join(” “).toLowerCase();if(t.indexOf(“espresso”)!==-1)e=true;if(t.indexOf(“filter”)!==-1||t.indexOf(“pour over”)!==-1)f=true}if(e&&f)return”Both”;if(f)return”Filter”;return”Espresso”}
 
-function getPrice(variants, currency) {
-const prices = variants.filter(v => v.available !== false).map(v => parseFloat(v.price)).filter(p => !isNaN(p) && p > 0);
-if (prices.length === 0) {
-const all = variants.map(v => parseFloat(v.price)).filter(p => !isNaN(p) && p > 0);
-return all.length ? currency + Math.min(…all).toFixed(0) : currency + “?”;
-}
-return currency + Math.min(…prices).toFixed(0);
-}
+function getPrice(v,c){var p=v.filter(function(x){return x.available!==false}).map(function(x){return parseFloat(x.price)}).filter(function(x){return!isNaN(x)&&x>0});if(!p.length){p=v.map(function(x){return parseFloat(x.price)}).filter(function(x){return!isNaN(x)&&x>0})}return p.length?c+Math.min.apply(null,p).toFixed(0):c+”?”}
 
-function isAvailable(variants) { return variants.some(v => v.available === true); }
+function isAvail(v){return v.some(function(x){return x.available===true})}
 
-function stripHtml(html) {
-if (!html) return “”;
-return html.replace(/<[^>]+>/g, “ “).replace(/&/g, “&”).replace(/</g, “<”)
-.replace(/>/g, “>”).replace(/'/g, “’”).replace(/"/g, ‘”’)
-.replace(/'/g, “’”).replace(/ /g, “ “).replace(/\s+/g, “ “).trim();
-}
+function stripHtml(h){if(!h)return””;return h.replace(/<[^>]+>/g,” “).replace(/&/g,”&”).replace(/ /g,” “).replace(/\s+/g,” “).trim()}
 
-function isCoffeeProduct(product) {
-const title = (product.title || “”).toLowerCase();
-const type = (product.product_type || “”).toLowerCase();
-const tags = (product.tags || []).join(” “).toLowerCase();
-const excludeWords = [
-“subscription”,“gift card”,“gift-card”,“t-shirt”,“tshirt”,“hoodie”,“beanie”,
-“mug “,“cup “,“grinder”,“scale”,“kettle”,“filter paper”,“dripper”,“brewer”,
-“hario”,“aeropress”,“chemex”,“comandante”,“moccamaster”,“timemore”,“acaia”,
-“origami”,“merchandise”,“merch”,“tote bag”,“poster”,“sticker”,
-“starter kit”,“chocolate bar”,” tea “,“candle”,“soap”,“towel”,“apron”,
-“drip bag”,“drip bags”,“capsule”,“capsules”,“nespresso”,“pod “,“pods”,
-“instant coffee”,“machine”,“breville”,“cascara”,“morning mini”,
-“sampler pack”,“voucher”,“gift voucher”,“keep cup”,“brewing guide”,
-“advent”,“birthday”,“pic’n’mix”,
-“delter”,“nanofoamer”,“tamper”,“portafilter”,“knock box”,
-“milk jug”,“server”,“carafe”,“thermometer”,“brush”,
-“coffee press”,“plunger”,“v60”,“cold brew bottle”,
-];
-for (const w of excludeWords) { if (title.includes(w)) return false; }
-if (tags.includes(“capsule”) || tags.includes(“drip bag”) || tags.includes(“drip-bag”)) return false;
-return true;
-}
+function isCoffee(p){var t=(p.title||””).toLowerCase();var tags=(p.tags||[]).join(” “).toLowerCase();var ex=[“subscription”,“gift card”,“t-shirt”,“hoodie”,“beanie”,“mug “,“grinder”,“scale”,“kettle”,“filter paper”,“dripper”,“brewer”,“hario”,“aeropress”,“chemex”,“comandante”,“moccamaster”,“timemore”,“acaia”,“origami”,“merchandise”,“merch”,“tote”,“poster”,“sticker”,“chocolate”,“candle”,“soap”,“towel”,“apron”,“drip bag”,“capsule”,“nespresso”,“pod “,“pods”,“instant coffee”,“machine”,“breville”,“cascara”,“morning mini”,“sampler”,“voucher”,“keep cup”,“brewing guide”,“advent”,“birthday”,“delter”,“nanofoamer”,“tamper”,“portafilter”,“knock box”,“milk jug”,“server”,“carafe”,“thermometer”,“coffee press”,“plunger”,“v60”,“cold brew bottle”];for(var i=0;i<ex.length;i++){if(t.indexOf(ex[i])!==-1)return false}if(tags.indexOf(“capsule”)!==-1||tags.indexOf(“drip bag”)!==-1)return false;return true}
 
-function deduplicateBeans(beans) {
-const seen = new Map();
-return beans.filter(bean => {
-const key = bean.roaster + “||” + bean.name.toLowerCase().replace(/[^a-z0-9]/g, “ “).replace(/\s+/g, “ “).trim();
-if (seen.has(key)) return false;
-seen.set(key, true);
-return true;
-});
-}
+function dedup(beans){var seen={};return beans.filter(function(b){var k=b.roaster+”||”+b.name.toLowerCase().replace(/[^a-z0-9]/g,” “).replace(/\s+/g,” “).trim();if(seen[k])return false;seen[k]=true;return true})}
 
-// ============================================================
-// PARSERS
-// ============================================================
-function parseProudMary(products, store) {
-return products.filter(isCoffeeProduct).map(p => {
-const parts = p.title.split(”|”).map(s => s.trim());
-const desc = stripHtml(p.body_html);
-const tagsStr = (p.tags || []).join(” “);
-let name, origin, process;
-if (parts.length >= 4) {
-origin = parts[0]; name = parts.slice(0, 2).join(” \u00B7 “);
-process = detectProcess(parts[3]) || parts[3];
-} else if (parts.length === 3) {
-origin = detectOrigin(parts[0]) ? parts[0] : null;
-name = parts.slice(0, 2).join(” \u00B7 “);
-process = detectProcess(parts[2]) || detectProcess(p.title) || “\u2014”;
-} else {
-name = p.title;
-origin = detectOrigin(p.title) || detectOrigin(tagsStr) || detectOrigin(desc);
-process = detectProcess(p.title) || detectProcess(tagsStr) || detectProcess(desc);
-if (!origin) origin = “Blend”;
-}
-return { roaster: store.name, roasterColor: store.color, name, origin: origin || “Blend”, process: process || “\u2014”, roast: detectRoast(p.variants || []), price: getPrice(p.variants || [], store.currency), available: isAvailable(p.variants || []), url: store.baseUrl + “/products/” + p.handle };
-});
-}
+function parsePM(products,s){return products.filter(isCoffee).map(function(p){var parts=p.title.split(”|”).map(function(x){return x.trim()});var desc=stripHtml(p.body_html);var tags=(p.tags||[]).join(” “);var name,origin,process;if(parts.length>=4){origin=parts[0];name=parts[0]+” \u00B7 “+parts[1];process=detectProcess(parts[3])||parts[3]}else if(parts.length===3){origin=detectOrigin(parts[0])?parts[0]:null;name=parts[0]+” \u00B7 “+parts[1];process=detectProcess(parts[2])||detectProcess(p.title)||”\u2014”}else{name=p.title;origin=detectOrigin(p.title)||detectOrigin(tags)||detectOrigin(desc);process=detectProcess(p.title)||detectProcess(tags)||detectProcess(desc);if(!origin)origin=“Blend”}return{roaster:s.name,roasterColor:s.color,name:name,origin:origin||“Blend”,process:process||”\u2014”,roast:detectRoast(p.variants||[]),price:getPrice(p.variants||[],s.cur),available:isAvail(p.variants||[]),url:s.base+”/products/”+p.handle}})}
 
-function parseAlchemist(products, store) {
-return products.filter(isCoffeeProduct).map(p => {
-const type = (p.product_type || “”);
-const tags = (p.tags || []);
-const tagsLower = tags.map(t => t.toLowerCase().trim());
-const desc = stripHtml(p.body_html);
-let origin = null, process = null;
-for (const tag of tags) {
-const tc = tag.trim();
-if (!origin) { for (const c of COUNTRIES) { if (tc.toLowerCase() === c.toLowerCase()) { origin = c; break; } } }
-if (!process) { const f = detectProcess(tc); if (f) process = f; }
-}
-if (!origin || !process) {
-const m = type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);
-if (m) { if (!origin) origin = detectOrigin(m[1].trim()); if (!process) process = detectProcess(m[2].trim()); }
-}
-if (!origin) origin = detectOrigin(type);
-if (!process) process = detectProcess(type);
-if (!origin) origin = detectOrigin(p.title);
-if (!process) process = detectProcess(p.title);
-if (!origin) origin = detectOrigin(desc);
-if (!process) process = detectProcess(desc);
-let roast = detectRoast(p.variants || []);
-const hasEsp = tagsLower.some(t => t === “espresso”);
-const hasFlt = tagsLower.some(t => t === “filter”);
-if (hasEsp && hasFlt) roast = “Both”;
-else if (hasFlt && !hasEsp) roast = “Filter”;
-else if (hasEsp && !hasFlt) roast = “Espresso”;
-return { roaster: store.name, roasterColor: store.color, name: p.title, origin: origin || “\u2014”, process: process || “\u2014”, roast, price: getPrice(p.variants || [], store.currency), available: isAvailable(p.variants || []), url: store.baseUrl + “/products/” + p.handle };
-});
-}
+function parseAlch(products,s){return products.filter(isCoffee).map(function(p){var type=p.product_type||””;var tags=p.tags||[];var desc=stripHtml(p.body_html);var origin=null,process=null;for(var i=0;i<tags.length;i++){var tc=tags[i].trim();if(!origin){for(var j=0;j<COUNTRIES.length;j++){if(tc.toLowerCase()===COUNTRIES[j].toLowerCase()){origin=COUNTRIES[j];break}}}if(!process){var f=detectProcess(tc);if(f)process=f}}if(!origin||!process){var m=type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);if(m){if(!origin)origin=detectOrigin(m[1]);if(!process)process=detectProcess(m[2])}}if(!origin)origin=detectOrigin(type)||detectOrigin(p.title)||detectOrigin(desc);if(!process)process=detectProcess(type)||detectProcess(p.title)||detectProcess(desc);var roast=detectRoast(p.variants||[]);var tl=tags.map(function(x){return x.toLowerCase().trim()});if(tl.indexOf(“espresso”)!==-1&&tl.indexOf(“filter”)!==-1)roast=“Both”;else if(tl.indexOf(“filter”)!==-1)roast=“Filter”;return{roaster:s.name,roasterColor:s.color,name:p.title,origin:origin||”\u2014”,process:process||”\u2014”,roast:roast,price:getPrice(p.variants||[],s.cur),available:isAvail(p.variants||[]),url:s.base+”/products/”+p.handle}})}
 
-function parseMaillard(products, store) {
-return products.filter(isCoffeeProduct).map(p => {
-const tags = (p.tags || []); const tagsStr = tags.join(” “); const desc = stripHtml(p.body_html);
-let origin = null;
-for (const tag of tags) { const f = detectOrigin(tag); if (f) { origin = f; break; } }
-if (!origin) origin = detectOrigin(p.title) || detectOrigin(desc);
-let process = detectProcess(p.title) || detectProcess(tagsStr) || detectProcess(desc);
-return { roaster: store.name, roasterColor: store.color, name: p.title, origin: origin || “\u2014”, process: process || “\u2014”, roast: detectRoast(p.variants || []), price: getPrice(p.variants || [], store.currency), available: isAvailable(p.variants || []), url: store.baseUrl + “/products/” + p.handle };
-});
-}
+function parseMail(products,s){return products.filter(isCoffee).map(function(p){var tags=(p.tags||[]);var desc=stripHtml(p.body_html);var origin=null;for(var i=0;i<tags.length;i++){var f=detectOrigin(tags[i]);if(f){origin=f;break}}if(!origin)origin=detectOrigin(p.title)||detectOrigin(desc);var process=detectProcess(p.title)||detectProcess(tags.join(” “))||detectProcess(desc);return{roaster:s.name,roasterColor:s.color,name:p.title,origin:origin||”\u2014”,process:process||”\u2014”,roast:detectRoast(p.variants||[]),price:getPrice(p.variants||[],s.cur),available:isAvail(p.variants||[]),url:s.base+”/products/”+p.handle}})}
 
-function parseMRRC(products, store) {
-return products.filter(isCoffeeProduct).map(p => {
-const tags = (p.tags || []); const desc = stripHtml(p.body_html);
-let origin = null;
-for (const tag of tags) { const f = detectOrigin(tag); if (f) { origin = f; break; } }
-if (!origin) origin = detectOrigin(p.title) || detectOrigin(desc);
-let process = null;
-for (const tag of tags) { const f = detectProcess(tag); if (f) { process = f; break; } }
-if (!process) process = detectProcess(p.title) || detectProcess(desc);
-const isBlend = !origin || tags.some(t => t.toLowerCase().includes(“blend”));
-return { roaster: store.name, roasterColor: store.color, name: p.title, origin: isBlend ? “Blend” : (origin || “\u2014”), process: process || “\u2014”, roast: detectRoast(p.variants || []), price: getPrice(p.variants || [], store.currency), available: isAvailable(p.variants || []), url: store.baseUrl + “/products/” + p.handle };
-});
-}
+function parseMRRC(products,s){return products.filter(isCoffee).map(function(p){var tags=(p.tags||[]);var desc=stripHtml(p.body_html);var origin=null;for(var i=0;i<tags.length;i++){var f=detectOrigin(tags[i]);if(f){origin=f;break}}if(!origin)origin=detectOrigin(p.title)||detectOrigin(desc);var process=null;for(var i=0;i<tags.length;i++){var f=detectProcess(tags[i]);if(f){process=f;break}}if(!process)process=detectProcess(p.title)||detectProcess(desc);var isBlend=!origin||tags.some(function(t){return t.toLowerCase().indexOf(“blend”)!==-1});return{roaster:s.name,roasterColor:s.color,name:p.title,origin:isBlend?“Blend”:(origin||”\u2014”),process:process||”\u2014”,roast:detectRoast(p.variants||[]),price:getPrice(p.variants||[],s.cur),available:isAvail(p.variants||[]),url:s.base+”/products/”+p.handle}})}
 
-// ============================================================
-// DATA FETCHING — tries direct first, falls back to CORS proxy
-// ============================================================
-async function fetchJson(url) {
-// Try direct first (works if Shopify allows CORS)
-try {
-const resp = await fetch(url);
-if (resp.ok) {
-const data = await resp.json();
-return data;
-}
-} catch (e) {
-// CORS or network error — try proxy
-}
+async function fetchJson(url){try{var r=await fetch(url);if(r.ok)return await r.json()}catch(e){}var pu=proxied(url);dlog(“Using proxy for: “+url.split(”/”)[2]);var r2=await fetch(pu);if(!r2.ok)throw new Error(“HTTP “+r2.status);return await r2.json()}
 
-// Fallback: use CORS proxy
-const proxyUrl = proxiedUrl(url);
-const resp = await fetch(proxyUrl);
-if (!resp.ok) throw new Error(“Proxy HTTP “ + resp.status);
-return await resp.json();
-}
+async function fetchStore(store){try{var all=[],ids={};for(var i=0;i<store.urls.length;i++){try{dlog(”[”+store.name+”] Fetching page “+(i+1)+”…”);var data=await fetchJson(store.urls[i]);var prods=data.products||[];dlog(”[”+store.name+”] Got “+prods.length+” products”);if(!prods.length)break;for(var j=0;j<prods.length;j++){if(!ids[prods[j].id]){ids[prods[j].id]=true;all.push(prods[j])}}}catch(e){dlog(”[”+store.name+”] Page error: “+e.message)}}if(!all.length)throw new Error(“No products”);var beans=store.parse(all,store);dlog(”[”+store.name+”] “+beans.length+” coffees parsed”);return{store:store.name,beans:dedup(beans),error:null}}catch(e){dlog(”[”+store.name+”] FAILED: “+e.message);return{store:store.name,beans:[],error:e.message}}}
 
-async function fetchStore(store) {
-try {
-const allProducts = [];
-const seenIds = new Set();
-for (const url of store.sourceUrls) {
-try {
-debugLog(”[” + store.name + “] Fetching: “ + url.split(”/”).slice(2,3).join(””) + “…”);
-const data = await fetchJson(url);
-const products = data.products || [];
-debugLog(”[” + store.name + “] Got “ + products.length + “ products”);
-if (products.length === 0) break;
-for (const p of products) {
-if (!seenIds.has(p.id)) { seenIds.add(p.id); allProducts.push(p); }
-}
-} catch (e) {
-debugLog(”[” + store.name + “] Page error: “ + e.message);
-}
-}
-if (allProducts.length === 0) throw new Error(“No products returned”);
-const beans = store.parse(allProducts, store);
-debugLog(”[” + store.name + “] Parsed “ + beans.length + “ coffees”);
-return { store: store.name, beans: deduplicateBeans(beans), error: null };
-} catch (err) {
-debugLog(”[” + store.name + “] FAILED: “ + err.message);
-return { store: store.name, beans: [], error: err.message };
-}
-}
+async function fetchAll(){dlog(“Starting fetch…”);var results=await Promise.all(STORES.map(fetchStore));var errors=[];allBeans=[];for(var i=0;i<results.length;i++){if(results[i].error)errors.push(results[i].store);allBeans=allBeans.concat(results[i].beans)}dlog(“Done! Total: “+allBeans.length+” coffees”);document.getElementById(“errors”).innerHTML=errors.length?”<div class='en'>Could not reach: “+errors.join(”, “)+”</div>”:””;document.getElementById(“loading”).style.display=“none”;renderBoard();updateFooter()}
 
-async function fetchAllStores() {
-debugLog(“Starting fetch at “ + new Date().toLocaleTimeString());
-const results = await Promise.all(STORES.map(fetchStore));
-const errors = [];
-allBeans = [];
-for (const r of results) {
-if (r.error) errors.push(r.store + “: “ + r.error);
-allBeans.push(…r.beans);
-}
-debugLog(“Total beans: “ + allBeans.length + “ | Errors: “ + errors.length);
-const errDiv = document.getElementById(“errors”);
-errDiv.innerHTML = errors.length
-? ’<div class="error-notice">\u26A0 COULD NOT REACH: ’ + errors.join(” \u00B7 “) + ‘</div>’
-: “”;
-document.getElementById(“loading”).style.display = “none”;
-renderBoard();
-updateFooter();
-}
+function getFiltered(){return allBeans.filter(function(b){if(filters.roaster!==“ALL”&&b.roaster!==filters.roaster)return false;if(filters.process!==“ALL”&&(b.process||””).toLowerCase().indexOf(filters.process.toLowerCase())===-1)return false;if(filters.roast!==“ALL”&&b.roast!==“Both”&&b.roast!==filters.roast)return false;if(filters.status===“AVAIL”&&!b.available)return false;if(filters.status===“SOLD”&&b.available)return false;return true})}
 
-// ============================================================
-// FILTERING
-// ============================================================
-function getFilteredBeans() {
-return allBeans.filter(bean => {
-if (filters.roaster !== “ALL” && bean.roaster !== filters.roaster) return false;
-if (filters.process !== “ALL” && !(bean.process || “”).toLowerCase().includes(filters.process.toLowerCase())) return false;
-if (filters.roast !== “ALL” && bean.roast !== “Both” && bean.roast !== filters.roast) return false;
-if (filters.status === “AVAIL” && !bean.available) return false;
-if (filters.status === “SOLD” && bean.available) return false;
-return true;
-});
-}
+function mkFlap(text,delay,fs){var c=document.createElement(“span”);c.className=“ft”;if(fs)c.style.fontSize=fs;var chars=(text||”\u2014”).toUpperCase().split(””);for(var i=0;i<chars.length;i++){var s=document.createElement(“span”);s.className=“fc”+(chars[i]===” “?” sp”:””);s.textContent=chars[i];(function(el,d){setTimeout(function(){el.className+=” rev”},d)})(s,delay+i*12);c.appendChild(s)}return c}
 
-// ============================================================
-// RENDERING
-// ============================================================
-function createFlapText(text, baseDelay, fontSize) {
-const c = document.createElement(“span”);
-c.className = “flap-text”;
-if (fontSize) c.style.fontSize = fontSize;
-(text || “\u2014”).toUpperCase().split(””).forEach((ch, i) => {
-const s = document.createElement(“span”);
-s.className = “flap-char” + (ch === “ “ ? “ space” : “”);
-s.textContent = ch;
-setTimeout(() => s.classList.add(“revealed”), baseDelay + i * 12);
-c.appendChild(s);
-});
-return c;
-}
+function renderBoard(){var board=document.getElementById(“board”);var old=board.querySelectorAll(”.br,#empty”);for(var i=0;i<old.length;i++)old[i].remove();var beans=getFiltered();if(!beans.length&&allBeans.length){var e=document.createElement(“div”);e.className=“ls”;e.id=“empty”;e.innerHTML=”<div class='lt'>NO OFFERINGS MATCH CURRENT FILTERS</div>”;board.appendChild(e);updateFooter();return}for(var i=0;i<beans.length;i++){var b=beans[i],d=i*60;var row=document.createElement(“a”);row.className=“br rh”;row.href=b.url;row.target=”_blank”;
+var rc=document.createElement(“div”);rc.className=“rc”;var bar=document.createElement(“span”);bar.className=“rb”;bar.style.background=b.roasterColor;rc.appendChild(bar);rc.appendChild(mkFlap(b.roaster,d,“11px”));row.appendChild(rc);
+var nc=document.createElement(“div”);nc.appendChild(mkFlap(b.name,d+30,“12px”));row.appendChild(nc);
+var oc=document.createElement(“div”);oc.appendChild(mkFlap(b.origin,d+60,“11px”));row.appendChild(oc);
+var pc=document.createElement(“div”);var badge=document.createElement(“span”);badge.className=“pb “+pcls(b.process);badge.textContent=(b.process||”\u2014”).toUpperCase();badge.style.opacity=“0”;badge.style.transition=“opacity .3s”;(function(el,t){setTimeout(function(){el.style.opacity=“1”},t)})(badge,d+90);pc.appendChild(badge);row.appendChild(pc);
+var roc=document.createElement(“div”);var rs=document.createElement(“span”);rs.className=“rl”;if(b.roast===“Both”){rs.className+=” rb2”;rs.textContent=“E / F”}else if(b.roast===“Filter”){rs.className+=” rf”;rs.textContent=“FLT”}else{rs.className+=” re”;rs.textContent=“ESP”}rs.style.opacity=“0”;rs.style.transition=“opacity .3s”;(function(el,t){setTimeout(function(){el.style.opacity=“1”},t)})(rs,d+110);roc.appendChild(rs);row.appendChild(roc);
+var prc=document.createElement(“div”);prc.appendChild(mkFlap(b.price,d+130,“12px”));row.appendChild(prc);
+var sc=document.createElement(“div”);var sb2=document.createElement(“span”);sb2.className=“sb “+(b.available?“si”:“so”);sb2.textContent=b.available?”\u25CF AVAIL”:”\u25CF SOLD”;sb2.style.opacity=“0”;sb2.style.transition=“opacity .3s”;(function(el,t){setTimeout(function(){el.style.opacity=“1”},t)})(sb2,d+160);sc.appendChild(sb2);row.appendChild(sc);
+board.appendChild(row);(function(el,t){setTimeout(function(){el.className=“br rv”},t)})(row,d+10)}updateFooter()}
 
-function renderBoard() {
-const board = document.getElementById(“board”);
-board.querySelectorAll(”.board-row, #empty-msg”).forEach(r => r.remove());
-const beans = getFilteredBeans();
-if (beans.length === 0 && allBeans.length > 0) {
-const e = document.createElement(“div”);
-e.className = “loading-state”; e.id = “empty-msg”;
-e.innerHTML = ‘<div class="loading-text">NO OFFERINGS MATCH CURRENT FILTERS</div>’;
-board.appendChild(e); updateFooter(); return;
-}
-beans.forEach((bean, i) => {
-const row = document.createElement(“a”);
-row.className = “board-row row-hidden”;
-row.href = bean.url; row.target = “_blank”; row.rel = “noopener”;
-const d = i * 60;
-const rc = document.createElement(“div”); rc.className = “roaster-cell”;
-const bar = document.createElement(“span”); bar.className = “roaster-bar”; bar.style.background = bean.roasterColor;
-rc.appendChild(bar); rc.appendChild(createFlapText(bean.roaster, d, “11px”)); row.appendChild(rc);
-const nc = document.createElement(“div”); nc.appendChild(createFlapText(bean.name, d+30, “12px”)); row.appendChild(nc);
-const oc = document.createElement(“div”); oc.appendChild(createFlapText(bean.origin, d+60, “11px”)); row.appendChild(oc);
-const pc = document.createElement(“div”);
-const badge = document.createElement(“span”); badge.className = “process-badge “ + getProcessClass(bean.process);
-badge.textContent = (bean.process || “\u2014”).toUpperCase(); badge.style.opacity = “0”; badge.style.transition = “opacity 0.3s ease”;
-setTimeout(() => badge.style.opacity = “1”, d+90); pc.appendChild(badge); row.appendChild(pc);
-const roc = document.createElement(“div”);
-const rs = document.createElement(“span”); rs.className = “roast-label”;
-if (bean.roast === “Both”) { rs.classList.add(“roast-both”); rs.textContent = “E / F”; }
-else if (bean.roast === “Filter”) { rs.classList.add(“roast-flt”); rs.textContent = “FLT”; }
-else { rs.classList.add(“roast-esp”); rs.textContent = “ESP”; }
-rs.style.opacity = “0”; rs.style.transition = “opacity 0.3s ease”;
-setTimeout(() => rs.style.opacity = “1”, d+110); roc.appendChild(rs); row.appendChild(roc);
-const prc = document.createElement(“div”); prc.appendChild(createFlapText(bean.price, d+130, “12px”)); row.appendChild(prc);
-const sc = document.createElement(“div”);
-const sb = document.createElement(“span”); sb.className = “status-badge “ + (bean.available ? “status-in-stock” : “status-sold-out”);
-sb.textContent = bean.available ? “\u25CF AVAIL” : “\u25CF SOLD”; sb.style.opacity = “0”; sb.style.transition = “opacity 0.3s ease”;
-setTimeout(() => sb.style.opacity = “1”, d+160); sc.appendChild(sb); row.appendChild(sc);
-board.appendChild(row);
-setTimeout(() => row.classList.replace(“row-hidden”, “row-visible”), d+10);
-});
-updateFooter();
-}
+function updateFooter(){document.getElementById(“count”).textContent=getFiltered().length+” OFFERINGS DISPLAYED”;var n=new Date();document.getElementById(“refresh-time”).textContent=“LAST REFRESH: “+n.toLocaleTimeString(“en-GB”,{hour:“2-digit”,minute:“2-digit”,second:“2-digit”})}
 
-function updateFooter() {
-document.getElementById(“count”).textContent = getFilteredBeans().length + “ OFFERINGS DISPLAYED”;
-const now = new Date();
-document.getElementById(“refresh-time”).textContent = “LAST REFRESH: “ + now.toLocaleTimeString(“en-GB”, { hour: “2-digit”, minute: “2-digit”, second: “2-digit” });
-}
+function updateClock(){var n=new Date();document.getElementById(“clock”).textContent=n.toLocaleTimeString(“en-GB”,{hour:“2-digit”,minute:“2-digit”,second:“2-digit”});document.getElementById(“date”).textContent=n.toLocaleDateString(“en-GB”,{weekday:“short”,day:“numeric”,month:“short”,year:“numeric”}).toUpperCase()}
 
-function updateClock() {
-const now = new Date();
-document.getElementById(“clock”).textContent = now.toLocaleTimeString(“en-GB”, { hour: “2-digit”, minute: “2-digit”, second: “2-digit” });
-document.getElementById(“date”).textContent = now.toLocaleDateString(“en-GB”, { weekday: “short”, day: “numeric”, month: “short”, year: “numeric” }).toUpperCase();
-}
+var btns=document.querySelectorAll(”.fb”);for(var i=0;i<btns.length;i++){btns[i].addEventListener(“click”,function(){var g=this.dataset.filter,v=this.dataset.value;filters[g]=(filters[g]===v&&v!==“ALL”)?“ALL”:v;var all=document.querySelectorAll(’.fb[data-filter=”’+g+’”]’);for(var j=0;j<all.length;j++){if(all[j].dataset.value===filters[g])all[j].classList.add(“active”);else all[j].classList.remove(“active”)}renderBoard()})}
 
-document.querySelectorAll(”.filter-btn”).forEach(btn => {
-btn.addEventListener(“click”, () => {
-const g = btn.dataset.filter, v = btn.dataset.value;
-filters[g] = (filters[g] === v && v !== “ALL”) ? “ALL” : v;
-document.querySelectorAll(’.filter-btn[data-filter=”’+g+’”]’).forEach(b => {
-b.classList.toggle(“active”, b.dataset.value === filters[g]);
-});
-renderBoard();
-});
-});
-
-updateClock();
-setInterval(updateClock, 1000);
-fetchAllStores();
-setInterval(fetchAllStores, 30 * 60 * 1000);
+updateClock();setInterval(updateClock,1000);fetchAll();setInterval(fetchAll,30*60*1000);
 </script>
 
 </body>
