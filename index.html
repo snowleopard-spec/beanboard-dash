@@ -756,6 +756,29 @@
       return null;
     }
 
+    function isBlend(text) {
+      if (!text) return false;
+      var l = text.toLowerCase();
+      // Explicit blend keyword
+      if (l.indexOf("blend") !== -1) return true;
+      // Count distinct origins mentioned — 2+ means blend
+      var found = [];
+      for (var i = 0; i < COUNTRIES.length; i++) {
+        if (l.indexOf(COUNTRIES[i].toLowerCase()) !== -1) {
+          if (found.indexOf(COUNTRIES[i]) === -1) found.push(COUNTRIES[i]);
+          if (found.length >= 2) return true;
+        }
+      }
+      for (var d in DEMONYMS) {
+        if (l.indexOf(d) !== -1) {
+          var country = DEMONYMS[d];
+          if (found.indexOf(country) === -1) found.push(country);
+          if (found.length >= 2) return true;
+        }
+      }
+      return false;
+    }
+
     function detectProcess(t) {
       if (!t) return null;
       var l = t.toLowerCase();
@@ -888,7 +911,12 @@
           process = detectProcess(parts[2]) || detectProcess(p.title) || "\u2014";
         } else {
           name = p.title;
-          origin = detectOrigin(p.title) || detectOrigin(tags) || detectOrigin(desc);
+          // Check if it's a blend (multiple origins or % in description)
+          if (isBlend(p.title) || isBlend(desc)) {
+            origin = "Blend";
+          } else {
+            origin = detectOrigin(p.title) || detectOrigin(tags) || detectOrigin(desc);
+          }
           process = detectProcess(p.title) || detectProcess(tags) || detectProcess(desc);
           if (!origin) origin = "Blend";
         }
@@ -953,6 +981,9 @@
         if (tl.indexOf("espresso") !== -1 && tl.indexOf("filter") !== -1) roast = "Both";
         else if (tl.indexOf("filter") !== -1) roast = "Filter";
 
+        // Override to Blend if description mentions multiple origins
+        if (isBlend(desc) || isBlend(p.title)) origin = "Blend";
+
         return {
           roaster: s.name,
           roasterColor: s.color,
@@ -986,6 +1017,9 @@
         var process = detectProcess(p.title)
           || detectProcess(tags.join(" "))
           || detectProcess(desc);
+
+        // Override to Blend if description mentions multiple origins
+        if (isBlend(desc) || isBlend(p.title)) origin = "Blend";
 
         return {
           roaster: s.name,
@@ -1024,15 +1058,18 @@
         }
         if (!process) process = detectProcess(p.title) || detectProcess(desc);
 
-        var isBlend = !origin || tags.some(function(t) {
+        var blendByTag = !origin || tags.some(function(t) {
           return t.toLowerCase().indexOf("blend") !== -1;
         });
+
+        // Also check for multi-origin blends in description
+        if (isBlend(desc) || isBlend(p.title)) blendByTag = true;
 
         return {
           roaster: s.name,
           roasterColor: s.color,
           name: p.title,
-          origin: isBlend ? "Blend" : (origin || "\u2014"),
+          origin: blendByTag ? "Blend" : (origin || "\u2014"),
           process: process || "\u2014",
           roast: detectRoast(p.variants || []),
           price: getPrice(p.variants || [], s.cur),
