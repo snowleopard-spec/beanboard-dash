@@ -129,10 +129,10 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 12px;
+      padding: 6px 14px;
       border-radius: 3px;
-      font-size: 10px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 800;
       letter-spacing: .06em;
       text-decoration: none;
       text-transform: uppercase;
@@ -742,7 +742,7 @@
       if (l.indexOf("honey") !== -1 && l.indexOf("honeyed") === -1) return "Honey";
       if (l.indexOf("natural") !== -1) return "Natural";
       if (l.indexOf("washed") !== -1) return "Washed";
-      if (l.indexOf("dried") !== -1) return "Natural";
+      if (l.indexOf("sun dried") !== -1 || l.indexOf("sundried") !== -1) return "Natural";
       return null;
     }
 
@@ -891,7 +891,15 @@
         var desc = stripHtml(p.body_html);
         var origin = null, process = null;
 
-        // Check tags for country names and process
+        // Check product_type FIRST — most reliable for Alchemist
+        // Format: "Origin - Process" (e.g. "El Salvador - Washed")
+        var m = type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);
+        if (m) {
+          origin = detectOrigin(m[1]);
+          process = detectProcess(m[2]);
+        }
+
+        // Then check tags for anything product_type missed
         for (var i = 0; i < tags.length; i++) {
           var tc = tags[i].trim();
           if (!origin) {
@@ -908,15 +916,7 @@
           }
         }
 
-        // Try product_type "Origin - Process" format
-        if (!origin || !process) {
-          var m = type.match(/^(.+?)\s*[-\u2013\u2014]\s*(.+)$/);
-          if (m) {
-            if (!origin) origin = detectOrigin(m[1]);
-            if (!process) process = detectProcess(m[2]);
-          }
-        }
-
+        // Fall back to broader text search
         if (!origin) origin = detectOrigin(type) || detectOrigin(p.title) || detectOrigin(desc);
         if (!process) process = detectProcess(type) || detectProcess(p.title) || detectProcess(desc);
 
@@ -1110,7 +1110,7 @@
     // ════════════════════════════════════════════
     //  RENDERING — flap-board animation
     // ════════════════════════════════════════════
-    function mkFlap(text, delay, fs) {
+    function mkFlap(text, delay, fs, color) {
       var c = document.createElement("span");
       c.className = "ft";
       if (fs) c.style.fontSize = fs;
@@ -1120,9 +1120,12 @@
         var s = document.createElement("span");
         s.className = "fc" + (chars[i] === " " ? " sp" : "");
         s.textContent = chars[i];
-        (function(el, d) {
-          setTimeout(function() { el.className += " rev"; }, d);
-        })(s, delay + i * 12);
+        (function(el, d, col) {
+          setTimeout(function() {
+            el.className += " rev";
+            if (col) el.style.color = col;
+          }, d);
+        })(s, delay + i * 12, color);
         c.appendChild(s);
       }
       return c;
@@ -1163,7 +1166,7 @@
         bar.className = "rb";
         bar.style.background = b.roasterColor;
         rc.appendChild(bar);
-        rc.appendChild(mkFlap(b.roaster, d, "11px"));
+        rc.appendChild(mkFlap(b.roaster, d, "11px", b.roasterColor));
         row.appendChild(rc);
 
         // Coffee name
