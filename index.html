@@ -673,10 +673,10 @@
     // ════════════════════════════════════════════
     var allBeans = [];
     var filters = {
-      roaster: "ALL",
-      process: "ALL",
-      roast: "ALL",
-      status: "AVAIL"
+      roaster: [],    // empty = ALL
+      process: [],
+      roast: [],
+      status: "AVAIL" // status stays single-select
     };
 
 
@@ -1094,12 +1094,32 @@
     // ════════════════════════════════════════════
     //  FILTERING
     // ════════════════════════════════════════════
+    function processMatches(beanProcess, filterVal) {
+      var bp = (beanProcess || "").toLowerCase();
+      var fv = filterVal.toLowerCase();
+      // Anaerobic: contains match (catches Anaerobic, Anaerobic Natural, Anaerobic Washed)
+      if (fv === "anaerobic") return bp.indexOf("anaerobic") !== -1;
+      // Honey: contains match (catches Honey, Black Honey, Red Honey, Yellow Honey)
+      if (fv === "honey") return bp.indexOf("honey") !== -1;
+      // Natural, Washed: exact match only
+      return bp === fv;
+    }
+
     function getFiltered() {
       return allBeans.filter(function(b) {
-        if (filters.roaster !== "ALL" && b.roaster !== filters.roaster) return false;
-        if (filters.process !== "ALL" &&
-            (b.process || "").toLowerCase().indexOf(filters.process.toLowerCase()) === -1) return false;
-        if (filters.roast !== "ALL" && b.roast !== "Both" && b.roast !== filters.roast) return false;
+        // Roaster: multi-select
+        if (filters.roaster.length && filters.roaster.indexOf(b.roaster) === -1) return false;
+        // Process: multi-select with special matching
+        if (filters.process.length) {
+          var matched = false;
+          for (var i = 0; i < filters.process.length; i++) {
+            if (processMatches(b.process, filters.process[i])) { matched = true; break; }
+          }
+          if (!matched) return false;
+        }
+        // Roast: multi-select (Both always passes)
+        if (filters.roast.length && b.roast !== "Both" && filters.roast.indexOf(b.roast) === -1) return false;
+        // Status: single-select
         if (filters.status === "AVAIL" && !b.available) return false;
         if (filters.status === "SOLD" && b.available) return false;
         return true;
@@ -1279,16 +1299,49 @@
         var g = this.dataset.filter;
         var v = this.dataset.value;
 
-        // Toggle: clicking active filter resets to ALL
-        filters[g] = (filters[g] === v && v !== "ALL") ? "ALL" : v;
-
-        // Update button states
-        var all = document.querySelectorAll('.fb[data-filter="' + g + '"]');
-        for (var j = 0; j < all.length; j++) {
-          if (all[j].dataset.value === filters[g]) {
-            all[j].classList.add("active");
+        if (g === "status") {
+          // Status: single-select as before
+          filters[g] = (filters[g] === v && v !== "ALL") ? "ALL" : v;
+          var all = document.querySelectorAll('.fb[data-filter="' + g + '"]');
+          for (var j = 0; j < all.length; j++) {
+            if (all[j].dataset.value === filters[g]) {
+              all[j].classList.add("active");
+            } else {
+              all[j].classList.remove("active");
+            }
+          }
+        } else {
+          // Roaster, Process, Roast: multi-select
+          if (v === "ALL") {
+            // ALL resets the filter
+            filters[g] = [];
           } else {
-            all[j].classList.remove("active");
+            var idx = filters[g].indexOf(v);
+            if (idx === -1) {
+              filters[g].push(v);    // Add to selection
+            } else {
+              filters[g].splice(idx, 1); // Remove from selection
+            }
+          }
+
+          // Update button states
+          var all = document.querySelectorAll('.fb[data-filter="' + g + '"]');
+          for (var j = 0; j < all.length; j++) {
+            var bv = all[j].dataset.value;
+            if (bv === "ALL") {
+              // ALL is active when nothing else is selected
+              if (filters[g].length === 0) {
+                all[j].classList.add("active");
+              } else {
+                all[j].classList.remove("active");
+              }
+            } else {
+              if (filters[g].indexOf(bv) !== -1) {
+                all[j].classList.add("active");
+              } else {
+                all[j].classList.remove("active");
+              }
+            }
           }
         }
 
