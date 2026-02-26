@@ -550,6 +550,15 @@
         <button class="fb" data-filter="process" data-value="Honey" style="--c:#FFD747" data-color>HONEY</button>
       </div>
       <div class="fg">
+        <span class="fl">ORIGIN</span>
+        <button class="fb active" data-filter="origin" data-value="ALL">ALL</button>
+        <button class="fb" data-filter="origin" data-value="Central America" style="--c:#FF8C42" data-color>CENTRAL AMERICA</button>
+        <button class="fb" data-filter="origin" data-value="South America" style="--c:#42D9C8" data-color>SOUTH AMERICA</button>
+        <button class="fb" data-filter="origin" data-value="Africa" style="--c:#FF6B6B" data-color>AFRICA</button>
+        <button class="fb" data-filter="origin" data-value="Asia" style="--c:#FFCF56" data-color>ASIA</button>
+        <button class="fb" data-filter="origin" data-value="Other" style="--c:#888" data-color>OTHER</button>
+      </div>
+      <div class="fg">
         <span class="fl">ROAST</span>
         <button class="fb active" data-filter="roast" data-value="ALL">ALL</button>
         <button class="fb" data-filter="roast" data-value="Espresso" style="--c:#F5A623" data-color>ESPRESSO</button>
@@ -675,6 +684,7 @@
     var filters = {
       roaster: [],    // empty = ALL
       process: [],
+      origin: [],
       roast: [],
       status: "AVAIL" // status stays single-select
     };
@@ -716,6 +726,23 @@
       "yemeni": "Yemen",
       "vietnamese": "Vietnam"
     };
+
+    var REGIONS = {
+      "Central America": ["Guatemala", "Mexico", "Nicaragua", "Honduras", "Costa Rica", "Panama", "El Salvador"],
+      "South America": ["Colombia", "Brazil", "Peru", "Bolivia", "Ecuador"],
+      "Africa": ["Ethiopia", "Kenya", "Uganda", "Rwanda", "Burundi", "Tanzania", "Congo", "Zambia", "Malawi", "Zimbabwe"],
+      "Asia": ["Indonesia", "India", "Thailand", "Myanmar", "Yemen", "China", "Japan", "Laos", "Vietnam"]
+    };
+
+    function getRegion(origin) {
+      if (!origin || origin === "\u2014") return null;
+      for (var r in REGIONS) {
+        for (var i = 0; i < REGIONS[r].length; i++) {
+          if (origin.toLowerCase().indexOf(REGIONS[r][i].toLowerCase()) !== -1) return r;
+        }
+      }
+      return "Other";
+    }
 
     function detectOrigin(t) {
       if (!t) return null;
@@ -1116,6 +1143,11 @@
             if (processMatches(b.process, filters.process[i])) { matched = true; break; }
           }
           if (!matched) return false;
+        }
+        // Origin: multi-select by region
+        if (filters.origin.length) {
+          var region = getRegion(b.origin);
+          if (!region || filters.origin.indexOf(region) === -1) return false;
         }
         // Roast: multi-select (Both always passes)
         if (filters.roast.length && b.roast !== "Both" && filters.roast.indexOf(b.roast) === -1) return false;
